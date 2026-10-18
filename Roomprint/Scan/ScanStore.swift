@@ -48,13 +48,18 @@ final class ScanStore {
 
     var freeScansLeft: Int { max(0, AppConfig.freeScans - freeScansUsed) }
 
-    /// Test builds from Xcode never run out, so the flow can be exercised before the store exists.
+    /// Xcode and TestFlight builds never run out, so the flow can be exercised before the store exists.
     var isTestBuild: Bool {
         #if DEBUG
         return true
         #else
-        return false
+        return isTestFlight
         #endif
+    }
+
+    /// TestFlight installs carry a sandbox receipt; App Store installs carry a production one.
+    private var isTestFlight: Bool {
+        Bundle.main.appStoreReceiptURL?.lastPathComponent == "sandboxReceipt"
     }
 
     var canScan: Bool { isTestBuild || freeScansLeft > 0 || credits > 0 }
