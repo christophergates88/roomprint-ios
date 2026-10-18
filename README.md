@@ -68,7 +68,7 @@ one-offs. Frames are processed and not stored.
   flow can be tested.
 - `AppConfig.scanServiceURL` is the Worker's address and `scanAppKey` must equal the Worker's `APP_KEY` secret.
 - The Worker needs secrets `ANTHROPIC_API_KEY` and `APP_KEY`, and a KV binding `ROOMPRINT_KV` for the
-  daily caps (6 scans per device per day, 150 per day in total, adjustable in its variables).
+  daily caps (20 scans per device per day, 150 per day in total, adjustable in its variables).
 - Deployed at `https://roomprint-scan.christophergates-cg.workers.dev` (`/health` reports whether the key is
   set). To redeploy after changing `worker/src/worker.js`: `cd worker && npx wrangler deploy`; to rotate a
   secret: `npx wrangler secret put ANTHROPIC_API_KEY` (never commit keys). The model runs on prepaid API
