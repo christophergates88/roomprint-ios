@@ -5,11 +5,13 @@ import LocalAuthentication
 @main
 struct RoomprintApp: App {
     @State private var store = ProStore()
+    @State private var scans = ScanStore()
 
     var body: some Scene {
         WindowGroup {
             RootView()
                 .environment(store)
+                .environment(scans)
                 .fontDesign(.rounded)
         }
         .modelContainer(for: [Home.self, Room.self, Item.self, ItemPhoto.self])

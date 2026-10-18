@@ -7,11 +7,14 @@ struct RoomDetailView: View {
     @Bindable var room: Room
     @Environment(\.modelContext) private var context
     @Environment(ProStore.self) private var store
+    @Environment(ScanStore.self) private var scans
     @Environment(\.dismiss) private var dismiss
 
     @State private var editingItem: Item?
     @State private var addingItem = false
     @State private var snapping = false
+    @State private var scanning = false
+    @State private var showScanCredits = false
     @State private var showPaywall = false
     @State private var renaming = false
     @State private var newName = ""
@@ -51,6 +54,8 @@ struct RoomDetailView: View {
             ItemEditorView(room: room, item: nil)
         }
         .sheet(isPresented: $showPaywall) { PaywallView() }
+        .sheet(isPresented: $showScanCredits) { ScanCreditsView() }
+        .fullScreenCover(isPresented: $scanning) { ScanView(room: room) }
         .fullScreenCover(isPresented: $snapping) {
             CaptureView(title: room.name, mode: .multi) { image in
                 addSnap(image)
@@ -120,7 +125,7 @@ struct RoomDetailView: View {
             Text("Nothing in \(room.name) yet")
                 .font(.title3.bold())
                 .multilineTextAlignment(.center)
-            Text("Tap Snap items and photograph things one after another. Add names and values later.")
+            Text("Tap Scan room, film a slow walkthrough, and approve the list it finds. Snap and Add are there for one-offs.")
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 32)
@@ -131,21 +136,30 @@ struct RoomDetailView: View {
     }
 
     private var actionBar: some View {
-        HStack(spacing: 12) {
-            Button(action: startSnap) {
-                Label("Snap items", systemImage: "camera.fill")
+        VStack(spacing: 10) {
+            Button(action: startScan) {
+                Label("Scan room", systemImage: "video.badge.waveform.fill")
                     .font(.headline)
                     .frame(maxWidth: .infinity)
             }
             .buttonStyle(.borderedProminent)
             .tint(.rpRecordDeep)
 
-            Button(action: startAdd) {
-                Label("Add", systemImage: "plus")
-                    .font(.headline)
-                    .frame(maxWidth: .infinity)
+            HStack(spacing: 12) {
+                Button(action: startSnap) {
+                    Label("Snap", systemImage: "camera.fill")
+                        .font(.headline)
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.bordered)
+
+                Button(action: startAdd) {
+                    Label("Add", systemImage: "plus")
+                        .font(.headline)
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.bordered)
             }
-            .buttonStyle(.bordered)
         }
         .controlSize(.large)
         .padding(.horizontal)
@@ -160,6 +174,10 @@ struct RoomDetailView: View {
         if store.isPro { return true }
         let count = (try? context.fetchCount(FetchDescriptor<Item>())) ?? 0
         return count < AppConfig.freeItemLimit
+    }
+
+    private func startScan() {
+        if scans.canScan { scanning = true } else { showScanCredits = true }
     }
 
     private func startSnap() {

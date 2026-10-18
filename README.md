@@ -56,6 +56,20 @@ The pages live in the `docs` folder and are published with GitHub Pages:
    - **Age rating:** 4+.
 4. Attach the Pro in-app purchase to the version, then **Submit for Review**. Review usually takes 1–3 days.
 
+## Room scans (AI)
+
+The main way to record a room: film a slow walkthrough, the phone pulls sharp frames and reads label
+text on-device, the frames go to the scan service (`worker/`, a Cloudflare Worker), which asks Claude to
+name and value every item, and you approve the list before anything is saved. Snap and Add remain for
+one-offs. Frames are processed and not stored.
+
+- First scan on a device is free; then consumable credits (`…roomprint.scans3` for 3, `…scans10` for 10),
+  created in App Store Connect as **Consumable** products. Debug builds from Xcode never use credits so the
+  flow can be tested.
+- `AppConfig.scanServiceURL` is the Worker's address and `scanAppKey` must equal the Worker's `APP_KEY` secret.
+- The Worker needs secrets `ANTHROPIC_API_KEY` and `APP_KEY`, and a KV binding `ROOMPRINT_KV` for the
+  daily caps (6 scans per device per day, 150 per day in total, adjustable in its variables).
+
 ## What's in the app
 
 | Screen | What it does |
@@ -63,7 +77,7 @@ The pages live in the `docs` folder and are published with GitHub Pages:
 | Welcome | Three short intro pages |
 | Homes | Your homes with their total value |
 | Home | Big total, "need proof" count, grid of rooms |
-| Room | Items with photos and values; **Snap items** opens a camera that saves one item per photo |
+| Room | Items with photos and values; **Scan room** films a walkthrough and lists everything; Snap/Add for one-offs |
 | Item | Photos, name, value, quantity; More details holds brand, model, serial, price paid, purchase date, receipt, notes |
 | Label scanner | Reads text from a model or serial sticker on the phone and drops it into the right field |
 | Export | Branded PDF (optional password with Pro) and CSV spreadsheet (Pro) |

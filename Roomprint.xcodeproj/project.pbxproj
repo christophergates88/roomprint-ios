@@ -209,8 +209,9 @@
 				INFOPLIST_KEY_CFBundleDisplayName = Roomprint;
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
-				INFOPLIST_KEY_NSCameraUsageDescription = "Roomprint uses the camera to photograph your belongings and their labels. Photos stay on your iPhone.";
+				INFOPLIST_KEY_NSCameraUsageDescription = "Roomprint uses the camera to film or photograph your belongings and their labels.";
 				INFOPLIST_KEY_NSFaceIDUsageDescription = "Roomprint uses Face ID to keep your home records private.";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Roomprint records a short walkthrough video of a room so it can list what is in it. The audio isn't used.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -244,8 +245,9 @@
 				INFOPLIST_KEY_CFBundleDisplayName = Roomprint;
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
-				INFOPLIST_KEY_NSCameraUsageDescription = "Roomprint uses the camera to photograph your belongings and their labels. Photos stay on your iPhone.";
+				INFOPLIST_KEY_NSCameraUsageDescription = "Roomprint uses the camera to film or photograph your belongings and their labels.";
 				INFOPLIST_KEY_NSFaceIDUsageDescription = "Roomprint uses Face ID to keep your home records private.";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Roomprint records a short walkthrough video of a room so it can list what is in it. The audio isn't used.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;

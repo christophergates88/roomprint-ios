@@ -3,9 +3,11 @@ import LocalAuthentication
 
 struct SettingsView: View {
     @Environment(ProStore.self) private var store
+    @Environment(ScanStore.self) private var scans
     @Environment(\.dismiss) private var dismiss
     @AppStorage("lockEnabled") private var lockEnabled = false
     @State private var showPaywall = false
+    @State private var showScanCredits = false
     @State private var lockError: String?
 
     private var appVersion: String {
@@ -46,6 +48,24 @@ struct SettingsView: View {
                 }
 
                 Section {
+                    Button {
+                        showScanCredits = true
+                    } label: {
+                        HStack {
+                            Label("Room scans", systemImage: "video.badge.waveform.fill")
+                                .foregroundStyle(Color.primary)
+                            Spacer()
+                            Text(scans.balanceLine)
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+                            Image(systemName: "chevron.right").foregroundStyle(.tertiary)
+                        }
+                    }
+                } footer: {
+                    Text("Film a room and approve the list. Video frames are sent to our scan service for identification and are not stored.")
+                }
+
+                Section {
                     Toggle(isOn: Binding(
                         get: { lockEnabled },
                         set: { setLock($0) }
@@ -55,7 +75,7 @@ struct SettingsView: View {
                 } header: {
                     Text("Privacy")
                 } footer: {
-                    Text("Your records stay on this iPhone. Roomprint doesn't upload your photos or details anywhere. They're included in your regular iPhone backup.")
+                    Text("Your records stay on this iPhone and are included in your regular iPhone backup. Only room scans send anything off the phone: the video frames, for processing, which are not kept.")
                 }
 
                 Section {
@@ -88,6 +108,7 @@ struct SettingsView: View {
                 }
             }
             .sheet(isPresented: $showPaywall) { PaywallView() }
+            .sheet(isPresented: $showScanCredits) { ScanCreditsView() }
             .alert("Face ID", isPresented: Binding(get: { lockError != nil }, set: { if !$0 { lockError = nil } })) {
                 Button("OK", role: .cancel) {}
             } message: {
