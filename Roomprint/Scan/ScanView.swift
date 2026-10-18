@@ -53,6 +53,11 @@ struct ScanView: View {
             }
         }
         .interactiveDismissDisabled(isWorking)
+        // The upload runs in the foreground, so keep the screen awake until the list is back.
+        .onChange(of: isWorking, initial: true) { _, working in
+            UIApplication.shared.isIdleTimerDisabled = working
+        }
+        .onDisappear { UIApplication.shared.isIdleTimerDisabled = false }
         .fullScreenCover(isPresented: $recording) {
             VideoRecorder { url in
                 recording = false
@@ -147,7 +152,7 @@ struct ScanView: View {
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 32)
             if case .waiting = stage {
-                Text("You can lock your phone; the result waits here.")
+                Text("Keep Roomprint open. The screen stays awake until the list is back.")
                     .font(.footnote)
                     .foregroundStyle(.tertiary)
             }
