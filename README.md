@@ -1,8 +1,8 @@
 # Roomprint for iPhone
 
-A home inventory app. People photograph their belongings room by room, scan model and serial labels, and export a claim-ready PDF. Everything stays on the phone, so there are no server or AI costs.
+A home inventory app. People film a slow walkthrough of a room, approve the list of belongings the AI scan finds (with estimated values), and export a claim-ready PDF. Snap and Add cover one-offs, and a label scanner reads model and serial stickers. Records stay on the phone; only room scans send video frames to our scan service, and those are not stored.
 
-**Business model:** free for 1 home and up to 30 items. **Roomprint Pro** is a one-time purchase that unlocks unlimited homes and items, password-protected PDFs, and spreadsheet export.
+**Business model:** free for 1 home and up to 30 items. **Roomprint Pro** is a one-time purchase that unlocks unlimited homes and items, password-protected PDFs, and spreadsheet export. Room scans are paid for with consumable scan credits (the first scan on a device is free).
 
 ---
 
@@ -69,6 +69,10 @@ one-offs. Frames are processed and not stored.
 - `AppConfig.scanServiceURL` is the Worker's address and `scanAppKey` must equal the Worker's `APP_KEY` secret.
 - The Worker needs secrets `ANTHROPIC_API_KEY` and `APP_KEY`, and a KV binding `ROOMPRINT_KV` for the
   daily caps (6 scans per device per day, 150 per day in total, adjustable in its variables).
+- Deployed at `https://roomprint-scan.christophergates-cg.workers.dev` (`/health` reports whether the key is
+  set). To redeploy after changing `worker/src/worker.js`: `cd worker && npx wrangler deploy`; to rotate a
+  secret: `npx wrangler secret put ANTHROPIC_API_KEY` (never commit keys). The model runs on prepaid API
+  credits at console.anthropic.com; a typical 40-frame scan costs a few cents.
 
 ## What's in the app
 

@@ -12,7 +12,7 @@ enum AppConfig {
     // MARK: AI room scans
 
     /// The scan service (a Cloudflare Worker). Frames are sent here, passed to the model, and not stored.
-    static let scanServiceURL = URL(string: "https://roomprint-scan.christophergates88.workers.dev/scan")!
+    static let scanServiceURL = URL(string: "https://roomprint-scan.christophergates-cg.workers.dev/scan")!
     /// Shared key the service expects in the X-Roomprint-Key header. Set the same value as the
     /// Worker's APP_KEY secret. It only stops strangers from running scans on our credits.
     static let scanAppKey = "rp-scan-2026-k7Qx9mP2vL4nR8tW"
