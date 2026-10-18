@@ -24,3 +24,9 @@ Package.resolved
 *.p12
 *.mobileprovision
 _to_delete/
+
+# Local helpers' output and the Worker's local state
+build.log
+deploy.log
+worker/.wrangler/
+worker/node_modules/
