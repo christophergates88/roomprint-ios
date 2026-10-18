@@ -72,7 +72,10 @@ one-offs. Frames are processed and not stored.
 - Deployed at `https://roomprint-scan.christophergates-cg.workers.dev` (`/health` reports whether the key is
   set). To redeploy after changing `worker/src/worker.js`: `cd worker && npx wrangler deploy`; to rotate a
   secret: `npx wrangler secret put ANTHROPIC_API_KEY` (never commit keys). The model runs on prepaid API
-  credits at console.anthropic.com; a typical 40-frame scan costs a few cents.
+  credits at console.anthropic.com. On Sonnet 5.5 ($2 per million input tokens) a 1024px frame is about
+  1,000 tokens, so a 40-frame scan costs roughly 10¢ and a maximum 80-frame scan about 20¢; Haiku 5.5
+  (`MODEL` variable) would be about 20× cheaper. `GET /stats` with the app key reports scans, tokens and
+  estimated cost for today, the last 7 days and the month.
 
 ## What's in the app
 

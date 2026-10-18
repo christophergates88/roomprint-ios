@@ -6,14 +6,23 @@
 //            [{"role":"user","content":[{"type":"text","text":"Frame 0 ..."},{"type":"image","source":{...}}, ...]}]
 //   → { items: [{ id, name, brand, model, serial, quantity, value, confidence, frame, notes }], model, usage }
 // GET /health → { ok: true }
+// GET /stats  (header X-Roomprint-Key) → scans, tokens and estimated cost for today, this month and the last 7 days
 //
 // The Worker never parses the frames: it wraps the app's messages array with the model, limits and the
 // system prompt (so the app cannot change those) and forwards the bytes. That keeps CPU time near zero,
-// which matters on the free plan. Frames are not stored anywhere; KV holds only daily counters.
+// which matters on the free plan. Frames are not stored anywhere; KV holds only daily counters and
+// token totals (no room names, no device ids beyond the daily per-device counter).
 // Secrets: ANTHROPIC_API_KEY, APP_KEY. Vars: MODEL, MAX_FRAMES, MAX_BODY_MB, MAX_SCANS_PER_DEVICE_PER_DAY, MAX_SCANS_PER_DAY.
 
 const ANTHROPIC_URL = "https://api.anthropic.com/v1/messages";
 const ANTHROPIC_VERSION = "2023-06-01";
+
+// USD per million tokens [input, output], standard tier (platform.claude.com/docs/en/about-claude/pricing).
+const PRICES = {
+  "claude-sonnet-5-5": [2, 10],
+  "claude-haiku-5-5": [0.1, 0.5],
+  "claude-opus-5-5": [4, 20],
+};
 
 const SYSTEM_PROMPT = `You build home-contents inventories for insurance claims from walkthrough video frames of ONE room.
 You receive frames in time order, each with any label text the phone's OCR read from that frame.
@@ -36,6 +45,12 @@ export default {
     const url = new URL(request.url);
     if (request.method === "GET" && url.pathname === "/health") {
       return json({ ok: true, model: env.MODEL || "claude-sonnet-5-5", configured: Boolean(env.ANTHROPIC_API_KEY && env.APP_KEY) });
+    }
+    if (request.method === "GET" && url.pathname === "/stats") {
+      if (!env.APP_KEY || request.headers.get("X-Roomprint-Key") !== env.APP_KEY) {
+        return json({ error: "unauthorized" }, 401);
+      }
+      return json(await stats(env));
     }
     if (request.method !== "POST" || url.pathname !== "/scan") {
       return json({ error: "not found" }, 404);
@@ -119,9 +134,70 @@ export default {
       return json({ error: "The model returned something unexpected. Try again.", raw: text.slice(0, 400) }, 502);
     }
     const items = parsed.items.map((it, i) => normalizeItem(it, i, frameCount)).filter(Boolean);
+    if (env.ROOMPRINT_KV && data.usage) {
+      ctx.waitUntil(recordUsage(env, day, model, data.usage));
+    }
     return json({ items, model, usage: data.usage || null });
   },
 };
+
+// MARK: usage ledger (totals only; nothing about the rooms or the frames)
+
+async function recordUsage(env, day, model, usage) {
+  const input = Number(usage.input_tokens) || 0;
+  const output = Number(usage.output_tokens) || 0;
+  const cost = estimateCost(model, input, output);
+  const bump = async (key, ttl) => {
+    let cur = {};
+    try { cur = JSON.parse((await env.ROOMPRINT_KV.get(key)) || "{}"); } catch { cur = {}; }
+    const next = {
+      scans: (cur.scans || 0) + 1,
+      input: (cur.input || 0) + input,
+      output: (cur.output || 0) + output,
+      cost: Math.round(((cur.cost || 0) + cost) * 10000) / 10000,
+    };
+    await env.ROOMPRINT_KV.put(key, JSON.stringify(next), { expirationTtl: ttl });
+  };
+  await Promise.all([
+    bump(`usage:${day}`, 45 * 86400),
+    bump(`usage:${day.slice(0, 7)}`, 400 * 86400),
+  ]);
+}
+
+function estimateCost(model, input, output) {
+  const [pin, pout] = PRICES[model] || PRICES["claude-sonnet-5-5"];
+  return (input * pin + output * pout) / 1_000_000;
+}
+
+async function stats(env) {
+  const model = env.MODEL || "claude-sonnet-5-5";
+  if (!env.ROOMPRINT_KV) return { model, error: "no KV binding" };
+  const now = new Date();
+  const dayKey = (d) => d.toISOString().slice(0, 10);
+  const days = [];
+  for (let i = 0; i < 7; i++) days.push(dayKey(new Date(now.getTime() - i * 86400000)));
+  const read = async (key) => {
+    try { return JSON.parse((await env.ROOMPRINT_KV.get(key)) || "{}"); } catch { return {}; }
+  };
+  const [today, month, ...week] = await Promise.all([
+    read(`usage:${days[0]}`),
+    read(`usage:${days[0].slice(0, 7)}`),
+    ...days.map((d) => read(`usage:${d}`)),
+  ]);
+  const sum = (list) => list.reduce((a, u) => ({
+    scans: a.scans + (u.scans || 0), input: a.input + (u.input || 0),
+    output: a.output + (u.output || 0), cost: Math.round((a.cost + (u.cost || 0)) * 10000) / 10000,
+  }), { scans: 0, input: 0, output: 0, cost: 0 });
+  const fill = (u) => ({ scans: u.scans || 0, input: u.input || 0, output: u.output || 0, cost: u.cost || 0 });
+  return {
+    model,
+    prices_per_million_tokens: PRICES[model] || null,
+    today: fill(today),
+    last7days: sum(week),
+    month: fill(month),
+    days: days.map((d, i) => ({ day: d, ...fill(week[i]) })),
+  };
+}
 
 function normalizeItem(it, i, frameCount) {
   const name = String(it.name || "").trim().slice(0, 80);
