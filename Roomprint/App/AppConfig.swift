@@ -30,9 +30,9 @@ enum AppConfig {
     /// Upload ceiling, below the service's 14 MB limit. Over it, frames are recompressed and then thinned.
     static let scanUploadBudgetMB: Double = 12
 
-    /// Your website, used for "Book a Roomprint visit". This points at the public
-    /// Roomprint site draft for now; change it to your own domain once it is live.
-    static let serviceURL = URL(string: "https://claude.ai/artifact/452tB6iHLG4squeqg53wfv")!
+    /// The public Roomprint website (served from docs/ by GitHub Pages; move to the
+    /// custom domain once it is connected).
+    static let websiteURL = URL(string: "https://christophergates88.github.io/roomprint-ios/")!
     /// Privacy policy. Apple requires this to be a working public page before review.
     /// Served from docs/privacy.html by GitHub Pages; change it when the domain is live.
     static let privacyURL = URL(string: "https://christophergates88.github.io/roomprint-ios/privacy.html")!

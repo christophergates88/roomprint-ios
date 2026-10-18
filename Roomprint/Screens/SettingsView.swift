@@ -79,16 +79,6 @@ struct SettingsView: View {
                 }
 
                 Section {
-                    Link(destination: AppConfig.serviceURL) {
-                        Label("Book a Roomprint visit", systemImage: "person.crop.circle.badge.checkmark")
-                    }
-                } header: {
-                    Text("Rather have us do it?")
-                } footer: {
-                    Text("In central Georgia, we can record your home for you in about an hour.")
-                }
-
-                Section {
                     Button("Restore purchase") {
                         Task { await store.restore() }
                     }
