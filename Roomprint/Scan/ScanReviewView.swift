@@ -122,7 +122,9 @@ struct ScanReviewView: View {
         let needed = Set(items.map(\.frame))
         var out: [Int: UIImage] = [:]
         for index in needed where frames.indices.contains(index) {
-            out[index] = frames[index].image.resized(maxSide: 200)
+            autoreleasepool {
+                out[index] = frames[index].image?.resized(maxSide: 200)
+            }
         }
         thumbs = out
     }

@@ -7,14 +7,19 @@ import UIKit
 // MARK: - Types
 
 /// One frame chosen from the walkthrough video.
+///
+/// Only the JPEG is kept: a decoded 1024px frame is about 3 MB, and holding eighty of them is how the
+/// app got killed for memory. Decode on demand with `image` and let the result go.
 struct ScanFrame {
     let index: Int
     let time: Double
-    let image: UIImage
     /// JPEG for upload (small).
     let jpeg: Data
     /// Label text the phone read on this frame, if any.
     var text: String = ""
+
+    /// Decoded on each call; don't hold these in bulk.
+    var image: UIImage? { UIImage(data: jpeg) }
 }
 
 /// One belonging the model found.
@@ -106,16 +111,22 @@ enum ScanService {
         generator.requestedTimeToleranceBefore = CMTime(seconds: 0.3, preferredTimescale: 600)
         generator.requestedTimeToleranceAfter = CMTime(seconds: 0.3, preferredTimescale: 600)
 
-        var candidates: [(time: Double, image: CGImage, sharpness: Double, signature: [UInt8])] = []
+        // Each decoded frame is compressed to JPEG straight away and the bitmap dropped, so the whole
+        // video costs a few megabytes of memory rather than hundreds.
+        var candidates: [(time: Double, jpeg: Data, sharpness: Double, signature: [UInt8])] = []
         var done = 0
         for await result in generator.images(for: times) {
             done += 1
             let d = done, total = times.count
             await MainActor.run { progress(.extracting(done: d, total: total)) }
-            guard let image = try? result.image else { continue }
-            let gray = grayThumb(image, side: 48)
-            let sharp = sharpness(gray, side: 48)
-            candidates.append((result.requestedTime.seconds, image, sharp, gray))
+            let time = result.requestedTime.seconds
+            autoreleasepool {
+                guard let image = try? result.image else { return }
+                let gray = grayThumb(image, side: 48)
+                let sharp = sharpness(gray, side: 48)
+                guard let jpeg = UIImage(cgImage: image).jpegData(compressionQuality: 0.6) else { return }
+                candidates.append((time, jpeg, sharp, gray))
+            }
         }
         guard !candidates.isEmpty else { throw ScanError.noFrames }
 
@@ -128,16 +139,11 @@ enum ScanService {
         for c in candidates {
             if c.sharpness < minSharp && candidates.count > 6 { continue }
             if let last = lastSignature, difference(last, c.signature) < 9 { continue }
-            let ui = UIImage(cgImage: c.image)
-            guard let jpeg = ui.jpegData(compressionQuality: 0.6) else { continue }
-            kept.append(ScanFrame(index: kept.count, time: c.time, image: ui, jpeg: jpeg))
+            kept.append(ScanFrame(index: kept.count, time: c.time, jpeg: c.jpeg))
             lastSignature = c.signature
         }
         if kept.isEmpty, let best = candidates.max(by: { $0.sharpness < $1.sharpness }) {
-            let ui = UIImage(cgImage: best.image)
-            if let jpeg = ui.jpegData(compressionQuality: 0.6) {
-                kept = [ScanFrame(index: 0, time: best.time, image: ui, jpeg: jpeg)]
-            }
+            kept = [ScanFrame(index: 0, time: best.time, jpeg: best.jpeg)]
         }
         guard !kept.isEmpty else { throw ScanError.noFrames }
         return fitToBudget(kept)
@@ -153,15 +159,17 @@ enum ScanService {
         var out = frames
         if payload(out) > budget {
             out = out.map { f in
-                guard let smaller = f.image.jpegData(compressionQuality: 0.4), smaller.count < f.jpeg.count else { return f }
-                return ScanFrame(index: f.index, time: f.time, image: f.image, jpeg: smaller, text: f.text)
+                autoreleasepool {
+                    guard let smaller = f.image?.jpegData(compressionQuality: 0.4), smaller.count < f.jpeg.count else { return f }
+                    return ScanFrame(index: f.index, time: f.time, jpeg: smaller, text: f.text)
+                }
             }
         }
         while payload(out) > budget && out.count > 1 {
             out = out.enumerated().filter { $0.offset % 2 == 0 }.map(\.element)
         }
         return out.enumerated().map { i, f in
-            ScanFrame(index: i, time: f.time, image: f.image, jpeg: f.jpeg, text: f.text)
+            ScanFrame(index: i, time: f.time, jpeg: f.jpeg, text: f.text)
         }
     }
 
@@ -171,7 +179,8 @@ enum ScanService {
         for i in frames.indices {
             let d = i + 1, total = frames.count
             await MainActor.run { progress(.readingLabels(done: d, total: total)) }
-            guard let cg = frames[i].image.cgImage else { continue }
+            // Decode one frame at a time; the bitmap is released as soon as the text is back.
+            guard let cg = frames[i].image?.cgImage else { continue }
             out[i].text = await recognizeText(cg)
         }
         return out

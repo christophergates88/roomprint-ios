@@ -250,10 +250,14 @@ struct ScanView: View {
             context.insert(item)
             item.room = room
             let frameIndex = min(max(0, scanItem.frame), max(0, frames.count - 1))
-            if frames.indices.contains(frameIndex), let pair = frames[frameIndex].image.storagePair() {
-                let photo = ItemPhoto(data: pair.data, thumb: pair.thumb, kind: .item)
-                context.insert(photo)
-                photo.item = item
+            if frames.indices.contains(frameIndex) {
+                // Decode one frame, make its photo, let the bitmap go before the next item.
+                let pair = autoreleasepool { frames[frameIndex].image?.storagePair() }
+                if let pair {
+                    let photo = ItemPhoto(data: pair.data, thumb: pair.thumb, kind: .item)
+                    context.insert(photo)
+                    photo.item = item
+                }
             }
         }
         scans.consumeScan()
