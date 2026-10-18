@@ -13,8 +13,8 @@ enum AppConfig {
     /// Roomprint site draft for now; change it to your own domain once it is live.
     static let serviceURL = URL(string: "https://claude.ai/artifact/452tB6iHLG4squeqg53wfv")!
     /// Privacy policy. Apple requires this to be a working public page before review.
-    /// Host website/privacy.html and put its address here.
-    static let privacyURL = URL(string: "https://getroomprint.com/privacy")!
+    /// Served from docs/privacy.html by GitHub Pages; change it when the domain is live.
+    static let privacyURL = URL(string: "https://christophergates88.github.io/roomprint-ios/privacy.html")!
     /// Apple's standard end-user license agreement, shown on the paywall.
     static let termsURL = URL(string: "https://www.apple.com/legal/internet-services/itunes/dev/stdeula/")!
 }

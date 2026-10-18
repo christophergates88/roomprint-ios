@@ -37,9 +37,12 @@ If Xcode shows a red build error, copy the error text and send it to Claude. It'
 
 Apple requires a privacy policy link and a support link.
 
-1. In the `website` folder, replace **[your support email]** in both files.
-2. Upload `privacy.html` and `support.html` to your website (or to GitHub Pages, the same way you host Lookout).
-3. Update `serviceURL` and `privacyURL` in `Roomprint/App/AppConfig.swift` to the real addresses. Until your domain is live, `serviceURL` points at the public Roomprint site draft so the "Book a Roomprint visit" link works; `privacyURL` must be a working page before you submit.
+The pages live in the `docs` folder and are published with GitHub Pages:
+
+- Privacy policy: https://christophergates88.github.io/roomprint-ios/privacy.html
+- Support: https://christophergates88.github.io/roomprint-ios/support.html
+
+`privacyURL` in `Roomprint/App/AppConfig.swift` already points at the privacy page. When you have your own domain, move the two pages there and change `privacyURL` and `serviceURL` to match. The contact email on both pages is in the HTML; change it there when you have a Roomprint address.
 
 ## 4. Submit to the App Store
 
@@ -74,6 +77,6 @@ Apple requires a privacy policy link and a support link.
 - `Roomprint/Export` – PDF and spreadsheet
 - `Roomprint/Assets.xcassets` – app icon and accent color
 - `Roomprint/PrivacyInfo.xcprivacy` – Apple's required privacy manifest
-- `website` – privacy policy and support pages
+- `docs` – privacy policy and support pages (served by GitHub Pages)
 
 Requires iOS 17 or later. iPhone only, portrait.
