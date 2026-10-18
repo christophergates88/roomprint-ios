@@ -140,7 +140,29 @@ enum ScanService {
             }
         }
         guard !kept.isEmpty else { throw ScanError.noFrames }
-        return kept
+        return fitToBudget(kept)
+    }
+
+    /// Keeps the upload under `AppConfig.scanUploadBudgetMB` (the service refuses bigger bodies):
+    /// first recompress every frame, then drop every other frame until it fits. Indexes stay contiguous.
+    private static func fitToBudget(_ frames: [ScanFrame]) -> [ScanFrame] {
+        let budget = Int(AppConfig.scanUploadBudgetMB * 1024 * 1024)
+        // Frames travel as base64 inside JSON: about 4/3 of the JPEG bytes plus a little per frame.
+        func payload(_ list: [ScanFrame]) -> Int { list.reduce(0) { $0 + $1.jpeg.count * 4 / 3 + 400 } }
+
+        var out = frames
+        if payload(out) > budget {
+            out = out.map { f in
+                guard let smaller = f.image.jpegData(compressionQuality: 0.4), smaller.count < f.jpeg.count else { return f }
+                return ScanFrame(index: f.index, time: f.time, image: f.image, jpeg: smaller, text: f.text)
+            }
+        }
+        while payload(out) > budget && out.count > 1 {
+            out = out.enumerated().filter { $0.offset % 2 == 0 }.map(\.element)
+        }
+        return out.enumerated().map { i, f in
+            ScanFrame(index: i, time: f.time, image: f.image, jpeg: f.jpeg, text: f.text)
+        }
     }
 
     /// Reads printed text (labels, model and serial stickers) on each frame, on the phone.

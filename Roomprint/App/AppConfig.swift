@@ -27,6 +27,8 @@ enum AppConfig {
     static let scanMaxFrames = 80
     /// Longest edge of an uploaded frame, in pixels. 1024 keeps labels readable and uploads small.
     static let scanFrameMaxSide: CGFloat = 1024
+    /// Upload ceiling, below the service's 14 MB limit. Over it, frames are recompressed and then thinned.
+    static let scanUploadBudgetMB: Double = 12
 
     /// Your website, used for "Book a Roomprint visit". This points at the public
     /// Roomprint site draft for now; change it to your own domain once it is live.
