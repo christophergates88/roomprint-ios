@@ -157,6 +157,8 @@ struct ExportView: View {
                     pdfURL = url
                     working = false
                     showShare = true
+                    // Retires the "get a copy out of the house" tip on the home page.
+                    UserDefaults.standard.set(true, forKey: "rp.exportedOnce")
                     Haptics.success()
                 }
             } catch {

@@ -37,6 +37,19 @@ struct HomeDetailView: View {
                     }
                     .buttonStyle(.plain)
                 }
+
+                // Computed from the record itself: where the owner is leaving value
+                // uncounted or unproven, each one tappable.
+                if !tips.isEmpty {
+                    Text("Ways to add value")
+                        .font(.title3.bold())
+                        .padding(.top, 8)
+                    VStack(spacing: 10) {
+                        ForEach(tips) { tip in
+                            tipRow(tip)
+                        }
+                    }
+                }
             }
             .padding()
         }
@@ -104,6 +117,129 @@ struct HomeDetailView: View {
         } message: {
             Text("This removes every room, item and photo for this home. It can't be undone.")
         }
+    }
+
+    // MARK: Ways to add value
+
+    @AppStorage("rp.exportedOnce") private var exportedOnce = false
+
+    /// Rooms people forget that quietly hold real money.
+    private static let moneyRooms: [(name: String, line: String)] = [
+        ("Closets", "Clothes and shoes quietly add up to thousands."),
+        ("Garage", "Tools and equipment are expensive to replace."),
+        ("Attic & storage", "Boxed-up things still count on a claim."),
+        ("Outdoor & patio", "Grills, mowers, and furniture add up fast.")
+    ]
+
+    private var tips: [Tip] {
+        var out: [Tip] = []
+
+        // Value in the record that nothing backs up yet.
+        let unproven = home.allItems.filter { !$0.hasProof }.reduce(0) { $0 + $1.totalValue }
+        if unproven > 0 {
+            out.append(Tip(
+                id: "review",
+                symbol: "checkmark.seal",
+                title: "Put proof behind \(Money.string(unproven))",
+                detail: "That value has no serial number or receipt yet. Start with the most expensive items.",
+                kind: .review))
+        }
+
+        // Rooms that exist but have nothing in them.
+        for room in home.sortedRooms.filter({ $0.items.isEmpty }).prefix(2) {
+            out.append(Tip(
+                id: "empty-\(room.name)",
+                symbol: room.symbol,
+                title: "Film the \(room.name.lowercased())",
+                detail: "It's empty in the record. A 30-second walkthrough adds everything at once.",
+                kind: .room(room)))
+        }
+
+        // Money rooms this home doesn't have yet.
+        let existing = Set(home.rooms.map { $0.name })
+        for candidate in Self.moneyRooms.filter({ !existing.contains($0.name) }).prefix(2) {
+            out.append(Tip(
+                id: "add-\(candidate.name)",
+                symbol: RoomPreset.all.first { $0.name == candidate.name }?.symbol ?? RoomPreset.customSymbol,
+                title: "Add a \(candidate.name) room",
+                detail: candidate.line,
+                kind: .addRoom))
+        }
+
+        // A record that only lives on this phone doesn't survive what the phone doesn't.
+        if !exportedOnce && home.itemCount > 0 {
+            out.append(Tip(
+                id: "export",
+                symbol: "square.and.arrow.up",
+                title: "Get a copy out of the house",
+                detail: "Email the PDF to yourself or save it to iCloud — a record helps most when it outlives the phone.",
+                kind: .export))
+        }
+
+        return Array(out.prefix(4))
+    }
+
+    @ViewBuilder
+    private func tipRow(_ tip: Tip) -> some View {
+        switch tip.kind {
+        case .room(let room):
+            NavigationLink(value: room) { TipCard(tip: tip) }
+                .buttonStyle(.plain)
+        case .review:
+            Button { showReview = true } label: { TipCard(tip: tip) }
+                .buttonStyle(.plain)
+        case .addRoom:
+            Button { showAddRoom = true } label: { TipCard(tip: tip) }
+                .buttonStyle(.plain)
+        case .export:
+            Button { showExport = true } label: { TipCard(tip: tip) }
+                .buttonStyle(.plain)
+        }
+    }
+}
+
+/// One suggestion for making the record worth more.
+private struct Tip: Identifiable {
+    enum Kind {
+        case review
+        case room(Room)
+        case addRoom
+        case export
+    }
+
+    let id: String
+    let symbol: String
+    let title: String
+    let detail: String
+    let kind: Kind
+}
+
+private struct TipCard: View {
+    let tip: Tip
+
+    var body: some View {
+        HStack(spacing: 12) {
+            Image(systemName: tip.symbol)
+                .font(.title3)
+                .foregroundStyle(Color.accentColor)
+                .frame(width: 40, height: 40)
+                .background(Color.accentColor.opacity(0.12), in: Circle())
+            VStack(alignment: .leading, spacing: 2) {
+                Text(tip.title)
+                    .font(.headline)
+                    .multilineTextAlignment(.leading)
+                Text(tip.detail)
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.leading)
+            }
+            Spacer(minLength: 6)
+            Image(systemName: "chevron.right")
+                .font(.caption.weight(.bold))
+                .foregroundStyle(.tertiary)
+        }
+        .card()
+        .contentShape(Rectangle())
     }
 }
 
