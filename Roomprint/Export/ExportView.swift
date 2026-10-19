@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 struct ExportView: View {
     let home: Home
@@ -10,6 +11,7 @@ struct ExportView: View {
     @State private var password = ""
     @State private var pdfURL: URL?
     @State private var csvURL: URL?
+    @State private var showShare = false
     @State private var working = false
     @State private var errorText: String?
     @State private var showPaywall = false
@@ -55,26 +57,25 @@ struct ExportView: View {
                         SecureField("Password", text: $password)
                             .textContentType(.newPassword)
                     }
-                    if let pdfURL {
-                        ShareLink(item: pdfURL) {
+                    // One button, one plain label. It builds the PDF, then the share
+                    // sheet opens on its own — no second tap to figure out.
+                    Button {
+                        if pdfURL != nil {
+                            showShare = true
+                        } else {
+                            makePDF()
+                        }
+                    } label: {
+                        HStack {
                             Label("Share or save PDF", systemImage: "square.and.arrow.up")
                                 .font(.headline)
-                        }
-                    } else {
-                        Button {
-                            makePDF()
-                        } label: {
-                            HStack {
-                                Label("Create PDF", systemImage: "doc.richtext")
-                                    .font(.headline)
-                                if working {
-                                    Spacer()
-                                    ProgressView()
-                                }
+                            if working {
+                                Spacer()
+                                ProgressView()
                             }
                         }
-                        .disabled(working || (usePassword && password.isEmpty) || home.allItems.isEmpty)
                     }
+                    .disabled(working || (usePassword && password.isEmpty) || home.allItems.isEmpty)
                 } header: {
                     Text("PDF record")
                 } footer: {
@@ -121,6 +122,12 @@ struct ExportView: View {
             .onChange(of: usePassword) { _, _ in pdfURL = nil }
             .onChange(of: password) { _, _ in pdfURL = nil }
             .sheet(isPresented: $showPaywall) { PaywallView() }
+            .sheet(isPresented: $showShare) {
+                if let pdfURL {
+                    ActivitySheet(url: pdfURL)
+                        .ignoresSafeArea(edges: .bottom)
+                }
+            }
             .alert("Couldn't export", isPresented: Binding(get: { errorText != nil }, set: { if !$0 { errorText = nil } })) {
                 Button("OK", role: .cancel) {}
             } message: {
@@ -149,6 +156,7 @@ struct ExportView: View {
                 await MainActor.run {
                     pdfURL = url
                     working = false
+                    showShare = true
                     Haptics.success()
                 }
             } catch {
@@ -168,4 +176,15 @@ struct ExportView: View {
             errorText = error.localizedDescription
         }
     }
+}
+
+/// The system share sheet (Mail, Messages, Save to Files, print, AirDrop…).
+struct ActivitySheet: UIViewControllerRepresentable {
+    let url: URL
+
+    func makeUIViewController(context: Context) -> UIActivityViewController {
+        UIActivityViewController(activityItems: [url], applicationActivities: nil)
+    }
+
+    func updateUIViewController(_ controller: UIActivityViewController, context: Context) {}
 }
