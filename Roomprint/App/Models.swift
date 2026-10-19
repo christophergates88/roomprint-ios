@@ -111,6 +111,8 @@ extension Home {
     var itemCount: Int { allItems.reduce(0) { $0 + $1.quantity } }
     var needsProofCount: Int { allItems.filter { !$0.hasProof }.count }
     var needsDetailsCount: Int { allItems.filter { $0.needsDetails }.count }
+    /// Items that still need attention for any reason: no value, no name, or no proof.
+    var needsReviewCount: Int { allItems.filter { $0.needsDetails || !$0.hasProof }.count }
 }
 
 extension Room {

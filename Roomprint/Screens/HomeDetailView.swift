@@ -9,6 +9,7 @@ struct HomeDetailView: View {
     @State private var showAddRoom = false
     @State private var showExport = false
     @State private var showEdit = false
+    @State private var showReview = false
     @State private var confirmDelete = false
 
     private let columns = [GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12)]
@@ -16,7 +17,7 @@ struct HomeDetailView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
-                SummaryCard(home: home)
+                SummaryCard(home: home, onReview: { showReview = true })
 
                 Text("Rooms")
                     .font(.title3.bold())
@@ -69,6 +70,9 @@ struct HomeDetailView: View {
         .navigationDestination(for: Room.self) { room in
             RoomDetailView(room: room)
         }
+        .navigationDestination(isPresented: $showReview) {
+            ReviewView(home: home)
+        }
         .toolbar {
             ToolbarItemGroup(placement: .topBarTrailing) {
                 Button {
@@ -105,6 +109,7 @@ struct HomeDetailView: View {
 
 struct SummaryCard: View {
     let home: Home
+    var onReview: (() -> Void)? = nil
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -123,13 +128,35 @@ struct SummaryCard: View {
                 Text("·")
                 Text("\(home.rooms.count) rooms")
                 Spacer()
-                if home.needsProofCount > 0 {
-                    Pill(text: "\(home.needsProofCount) need proof", color: .rpRecordDeep)
-                } else if home.itemCount > 0 {
+                if home.itemCount > 0 && home.needsReviewCount == 0 {
                     Pill(text: "All proven", color: .green)
                 }
             }
             .font(.subheadline)
+            if home.needsReviewCount > 0 {
+                // One tap to see every item that still needs a value or proof.
+                Button(action: { onReview?() }) {
+                    HStack(spacing: 8) {
+                        Image(systemName: "exclamationmark.circle.fill")
+                        Text(home.needsReviewCount == 1
+                             ? "1 item needs a value or proof"
+                             : "\(home.needsReviewCount) items need a value or proof")
+                            .font(.subheadline.weight(.semibold))
+                            .multilineTextAlignment(.leading)
+                        Spacer(minLength: 6)
+                        Text("Review")
+                            .font(.subheadline.weight(.bold))
+                        Image(systemName: "chevron.right")
+                            .font(.caption.weight(.bold))
+                    }
+                    .foregroundStyle(Color.rpVellum)
+                    .padding(.vertical, 11)
+                    .padding(.horizontal, 12)
+                    .background(Color.white.opacity(0.14), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+            }
             if home.itemCount == 0 {
                 Text("Open a room and tap Scan room to start.")
                     .font(.footnote)
@@ -250,5 +277,79 @@ struct AddRoomSheet: View {
         room.home = home
         Haptics.tap()
         dismiss()
+    }
+}
+
+// MARK: - Needs review
+
+/// Every item across the home that still needs a value or proof. Tap one, fix it, it drops off.
+struct ReviewView: View {
+    @Bindable var home: Home
+    @State private var editing: Item?
+
+    /// No name or no value: these count for $0 on a claim.
+    private var needDetails: [Item] {
+        home.allItems.filter { $0.needsDetails }.sorted { $0.createdAt > $1.createdAt }
+    }
+    /// Named and valued, but no serial number or receipt. Most valuable first.
+    private var needProof: [Item] {
+        home.allItems.filter { !$0.hasProof && !$0.needsDetails }.sorted { $0.totalValue > $1.totalValue }
+    }
+
+    var body: some View {
+        List {
+            if needDetails.isEmpty && needProof.isEmpty {
+                ContentUnavailableView {
+                    Label("All set", systemImage: "checkmark.seal.fill")
+                } description: {
+                    Text("Every item has a name, a value, and proof.")
+                }
+            }
+            if !needDetails.isEmpty {
+                Section {
+                    ForEach(needDetails) { item in reviewRow(item) }
+                } header: {
+                    Text("Missing a name or value")
+                        .textCase(nil)
+                } footer: {
+                    Text("A claim pays on the value, so these count for $0 until they're filled in. Tap one to fix it.")
+                }
+            }
+            if !needProof.isEmpty {
+                Section {
+                    ForEach(needProof) { item in reviewRow(item) }
+                } header: {
+                    Text("Missing proof")
+                        .textCase(nil)
+                } footer: {
+                    Text("Proof is a serial number or a receipt photo — either one. Tap an item to add it. Start at the top: the most expensive things are listed first.")
+                }
+            }
+        }
+        .scrollContentBackground(.hidden)
+        .background(Color.rpGround)
+        .navigationTitle("Review")
+        .navigationBarTitleDisplayMode(.inline)
+        .sheet(item: $editing) { item in
+            if let room = item.room {
+                ItemEditorView(room: room, item: item)
+            }
+        }
+    }
+
+    private func reviewRow(_ item: Item) -> some View {
+        Button {
+            editing = item
+        } label: {
+            VStack(alignment: .leading, spacing: 2) {
+                ItemRow(item: item)
+                if let room = item.room {
+                    Text("in \(room.name)")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            }
+        }
+        .buttonStyle(.plain)
     }
 }

@@ -26,6 +26,10 @@ struct ExportView: View {
                             .font(.subheadline)
                             .foregroundStyle(.orange)
                     }
+                } footer: {
+                    if home.needsReviewCount > 0 {
+                        Text("You can still export now. To fix these first, tap Done, then tap Review on the home page.")
+                    }
                 }
 
                 Section {
