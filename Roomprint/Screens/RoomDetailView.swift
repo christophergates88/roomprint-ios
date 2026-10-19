@@ -32,7 +32,7 @@ struct RoomDetailView: View {
         .navigationTitle(room.name)
         .safeAreaInset(edge: .bottom) { actionBar }
         .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
+            ToolbarItemGroup(placement: .topBarTrailing) {
                 Menu {
                     Button("Rename room", systemImage: "pencil") {
                         newName = room.name
@@ -45,6 +45,11 @@ struct RoomDetailView: View {
                     Image(systemName: "ellipsis.circle")
                 }
                 .accessibilityLabel("More")
+
+                // An explicit way out. The back arrow reads as "undo" to some people;
+                // Done says the work is kept.
+                Button("Done") { dismiss() }
+                    .fontWeight(.semibold)
             }
         }
         .sheet(item: $editingItem) { item in
@@ -125,7 +130,7 @@ struct RoomDetailView: View {
             Text("Nothing in \(room.name) yet")
                 .font(.title3.bold())
                 .multilineTextAlignment(.center)
-            Text("Tap Scan room, film a slow walkthrough, and approve the list it finds. Snap and Add are there for one-offs.")
+            Text("Tap Scan room, film a slow walkthrough, and approve the list it finds. Snap item and Add item are for single things, like one new purchase.")
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 32)
@@ -147,19 +152,25 @@ struct RoomDetailView: View {
 
             HStack(spacing: 12) {
                 Button(action: startSnap) {
-                    Label("Snap", systemImage: "camera.fill")
+                    Label("Snap item", systemImage: "camera.fill")
                         .font(.headline)
                         .frame(maxWidth: .infinity)
                 }
                 .buttonStyle(.bordered)
 
                 Button(action: startAdd) {
-                    Label("Add", systemImage: "plus")
+                    Label("Add item", systemImage: "plus")
                         .font(.headline)
                         .frame(maxWidth: .infinity)
                 }
                 .buttonStyle(.bordered)
             }
+
+            Text("Everything is saved automatically. Done just goes back.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .frame(maxWidth: .infinity)
+                .multilineTextAlignment(.center)
         }
         .controlSize(.large)
         .padding(.horizontal)

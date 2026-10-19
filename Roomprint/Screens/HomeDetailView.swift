@@ -42,6 +42,30 @@ struct HomeDetailView: View {
         .background(Color.rpGround)
         .navigationTitle(home.name)
         .navigationBarTitleDisplayMode(.inline)
+        // A labeled button for the app's whole point. The toolbar share icon stays,
+        // but not everyone reads that symbol as "get my record out".
+        .safeAreaInset(edge: .bottom) {
+            VStack(spacing: 8) {
+                Button {
+                    showExport = true
+                } label: {
+                    Label("Save or share the record (PDF)", systemImage: "square.and.arrow.up")
+                        .font(.headline)
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.borderedProminent)
+                .controlSize(.large)
+                .disabled(home.itemCount == 0)
+
+                Text("Everything is saved automatically as you go.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+            .padding(.horizontal)
+            .padding(.top, 10)
+            .padding(.bottom, 6)
+            .background(.bar)
+        }
         .navigationDestination(for: Room.self) { room in
             RoomDetailView(room: room)
         }
@@ -107,7 +131,7 @@ struct SummaryCard: View {
             }
             .font(.subheadline)
             if home.itemCount == 0 {
-                Text("Open a room and tap Snap items to start.")
+                Text("Open a room and tap Scan room to start.")
                     .font(.footnote)
                     .opacity(0.8)
             }
