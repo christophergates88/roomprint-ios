@@ -22,7 +22,10 @@ struct ExportView: View {
                     row("Estimated value", Money.string(home.totalValue))
                     row("Need proof", "\(home.needsProofCount)")
                     if home.needsDetailsCount > 0 {
-                        Label("\(home.needsDetailsCount) items still need a name or value.", systemImage: "exclamationmark.circle")
+                        Label(home.needsDetailsCount == 1
+                              ? "1 item still needs a name or value."
+                              : "\(home.needsDetailsCount) items still need a name or value.",
+                              systemImage: "exclamationmark.circle")
                             .font(.subheadline)
                             .foregroundStyle(.orange)
                     }
