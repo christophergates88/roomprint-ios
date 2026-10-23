@@ -40,11 +40,41 @@ Rules:
 - notes: short, only when useful (e.g. "two matching nightstands", "serial partly hidden").
 Return ONLY a JSON object: {"items":[{"name":"","brand":"","model":"","serial":"","quantity":1,"value":0,"confidence":"high|medium|low","frame":0,"notes":""}]}. No prose, no markdown fences.`;
 
+// GET /credit: a 1-token call to Anthropic, cached 10 minutes, so the hourly ops check
+// can tell when the API key stops working or the prepaid credit runs out. Costs a tiny fraction of a cent; the cache keeps
+// strangers from running up the bill. Returns only {ok, credit, error}, nothing secret.
+let creditCache = null;
+async function creditCheck(env) {
+  if (creditCache && Date.now() - creditCache.at < 10 * 60 * 1000) return creditCache.r;
+  let r;
+  try {
+    const res = await fetch(ANTHROPIC_URL, {
+      method: "POST",
+      headers: { "x-api-key": env.ANTHROPIC_API_KEY || "", "anthropic-version": ANTHROPIC_VERSION, "content-type": "application/json" },
+      body: JSON.stringify({ model: "claude-haiku-5-5", max_tokens: 1, messages: [{ role: "user", content: "ok" }] }),
+    });
+    if (res.ok) r = { ok: true, credit: true };
+    else {
+      const t = await res.text();
+      const low = /credit balance|billing|insufficient|purchase credits/i.test(t);
+      r = { ok: false, credit: !low, status: res.status,
+            error: low ? "Anthropic credit balance is too low" : res.status === 401 ? "Anthropic API key rejected" : t.slice(0, 200) };
+    }
+  } catch (e) {
+    r = { ok: false, credit: null, error: String(e).slice(0, 200) };
+  }
+  creditCache = { at: Date.now(), r };
+  return r;
+}
+
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
     if (request.method === "GET" && url.pathname === "/health") {
       return json({ ok: true, model: env.MODEL || "claude-sonnet-5-5", configured: Boolean(env.ANTHROPIC_API_KEY && env.APP_KEY) });
+    }
+    if (request.method === "GET" && url.pathname === "/credit") {
+      return json(await creditCheck(env));
     }
     if (request.method === "GET" && url.pathname === "/stats") {
       if (!env.APP_KEY || request.headers.get("X-Roomprint-Key") !== env.APP_KEY) {
