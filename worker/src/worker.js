@@ -76,6 +76,14 @@ export default {
     if (request.method === "GET" && url.pathname === "/credit") {
       return json(await creditCheck(env));
     }
+    if (request.method === "GET" && url.pathname === "/usage") {
+      // Counts and estimated cost only (no keys, no customer data) so the Gates HQ ops check can watch spend.
+      const s = env.ROOMPRINT_KV ? await stats(env) : {};
+      return json({ unit: "scans", today: { count: s.today?.scans || 0, cost: s.today?.cost || 0 },
+        month: { count: s.month?.scans || 0, cost: s.month?.cost || 0 },
+        last7days: { count: s.last7days?.scans || 0, cost: s.last7days?.cost || 0 },
+        cap_day: parseInt(env.MAX_SCANS_PER_DAY || "150", 10), model: env.MODEL || "claude-sonnet-5-5" });
+    }
     if (request.method === "GET" && url.pathname === "/stats") {
       if (!env.APP_KEY || request.headers.get("X-Roomprint-Key") !== env.APP_KEY) {
         return json({ error: "unauthorized" }, 401);
