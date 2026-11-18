@@ -1,6 +1,8 @@
 # Roomprint for iPhone
 
-A home inventory app. People film a slow walkthrough of a room, approve the list of belongings the AI scan finds (with estimated values), and export a claim-ready PDF. Snap and Add cover one-offs, and a label scanner reads model and serial stickers. Records stay on the phone; only room scans send video frames to our scan service, and those are not stored.
+A home inventory app. People film a slow walkthrough of a room, approve the list of belongings the AI scan finds (with estimated values), and export a claim-ready PDF. Snap and Add cover one-offs, and a label scanner reads model and serial stickers. Records stay on the phone. Only room scans send anything off it, and only after the person allows it on a permission screen: still frames, label text and the room name go to our scan service, which uses Anthropic's Claude. The service keeps no frames.
+
+**Shipping a new build:** double-click `Ship Roomprint.command` on the Mac (or see `appstore/RESUBMIT.md`). It pulls the latest code, updates the scan service, archives and uploads to App Store Connect. **CI:** every push to `main` builds the app with Xcode 26, makes an unsigned App Store archive and takes 6.9-inch screenshots from demo mode; results land on the `ci-results` branch.
 
 **Business model:** free for 1 home and up to 30 items. **Roomprint Pro** is a one-time purchase that unlocks unlimited homes and items, password-protected PDFs, and spreadsheet export. Room scans are paid for with consumable scan credits (the first scan on a device is free).
 
@@ -51,7 +53,7 @@ The pages live in the `docs` folder and are published with GitHub Pages:
 3. In App Store Connect, fill in:
    - **Screenshots:** 6.9-inch iPhone screenshots (take them on your phone or the iPhone 16 Pro Max simulator). Good ones: a room full of items, the camera, the home total, the PDF.
    - **Description, keywords** (home inventory, insurance, belongings, claim, moving), **support URL**, **privacy policy URL**.
-   - **App Privacy:** choose **"Data Not Collected"**. The app collects nothing.
+   - **App Privacy:** **Yes, data is collected**: Photos or Videos, Other User Content and Device ID, each for App Functionality, not linked to the user, not used for tracking (room scans only). See `appstore/RESUBMIT.md`.
    - **Category:** Productivity (or Lifestyle).
    - **Age rating:** 4+.
 4. Attach the Pro in-app purchase to the version, then **Submit for Review**. Review usually takes 1–3 days.
@@ -64,9 +66,12 @@ name and value every item, and you approve the list before anything is saved. Sn
 one-offs. Frames are processed and not stored.
 
 - First scan on a device is free; then consumable credits (`…roomprint.scans3` for 3, `…scans10` for 10),
-  created in App Store Connect as **Consumable** products. Debug builds from Xcode never use credits so the
-  flow can be tested.
-- `AppConfig.scanServiceURL` is the Worker's address and `scanAppKey` must equal the Worker's `APP_KEY` secret.
+  created in App Store Connect as **Consumable** products. A scan is charged when a list comes back. Credits
+  live in the Keychain, so a reinstall keeps them. Only Debug builds from Xcode run free; TestFlight and
+  review builds are charged like the store build (TestFlight purchases cost nothing).
+- `AppConfig.scanServiceURL` is the Worker's address. The app sends `ScanKey.value`, which must equal the
+  Worker's `APP_KEY` secret. The ship script keeps the real key on the Mac (`~/.roomprint/scan-key`) and only
+  puts it into the App Store build, so the key in this public repo stops working after the first ship.
 - The Worker needs secrets `ANTHROPIC_API_KEY` and `APP_KEY`, and a KV binding `ROOMPRINT_KV` for the
   daily caps (20 scans per device per day, 150 per day in total, adjustable in its variables).
 - Deployed at `https://roomprint-scan.christophergates-cg.workers.dev` (`/health` reports whether the key is
@@ -88,7 +93,8 @@ one-offs. Frames are processed and not stored.
 | Item | Photos, name, value, quantity; More details holds brand, model, serial, price paid, purchase date, receipt, notes |
 | Label scanner | Reads text from a model or serial sticker on the phone and drops it into the right field |
 | Export | Branded PDF (optional password with Pro) and CSV spreadsheet (Pro) |
-| Settings | Pro status, Face ID lock, "Book a Roomprint visit" link, restore purchase |
+| AI consent | Before the first scan: what is sent, to whom, what happens to it; Allow or Not now (Guideline 5.1.2(i)) |
+| Settings | Pro status, scan balance, Allow AI room scans, Face ID lock, Help, Email support, Privacy, Terms, restore purchase |
 
 ## Files
 
@@ -98,6 +104,9 @@ one-offs. Frames are processed and not stored.
 - `Roomprint/Export` – PDF and spreadsheet
 - `Roomprint/Assets.xcassets` – app icon and accent color
 - `Roomprint/PrivacyInfo.xcprivacy` – Apple's required privacy manifest
-- `docs` – privacy policy and support pages (served by GitHub Pages)
+- `docs` – getroomprint.com: home page, privacy policy, support page, sample record (served by GitHub Pages)
+- `appstore` – the App Store listing text, the resubmission steps, and marketing screenshots
+- `tools` – CI scripts and the screenshot framer
+- `Roomprint/App/Demo.swift` – demo mode for screenshots: launch with `-RPDemo -RPScreen home|room|scan|review|pdf|export|homes|onboarding` (in-memory, never touches real records)
 
 Requires iOS 17 or later. iPhone only, portrait.

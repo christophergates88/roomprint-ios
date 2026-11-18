@@ -6,9 +6,9 @@
 	<false/>
 	<key>NSPrivacyTrackingDomains</key>
 	<array/>
-	<!-- Room scans send video frames, the room's name and a random per-install id to the scan service
+	<!-- Room scans (only after the person allows it) send video frames, label text, the room name and a random per-install id to the scan service
 	     so the items can be identified and daily limits enforced. Nothing is linked to the person or
-	     used for tracking, and the frames are not stored. Everything else stays on the phone. -->
+	     used for tracking; the scan service keeps no frames, and Anthropic deletes them within 30 days. Everything else stays on the phone. -->
 	<key>NSPrivacyCollectedDataTypes</key>
 	<array>
 		<dict>
@@ -37,7 +37,7 @@
 		</dict>
 		<dict>
 			<key>NSPrivacyCollectedDataType</key>
-			<string>NSPrivacyCollectedDataTypeUserID</string>
+			<string>NSPrivacyCollectedDataTypeDeviceID</string>
 			<key>NSPrivacyCollectedDataTypeLinked</key>
 			<false/>
 			<key>NSPrivacyCollectedDataTypeTracking</key>

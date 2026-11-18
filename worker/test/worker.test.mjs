@@ -1,4 +1,4 @@
-// Run: node --test worker/test/   (no dependencies; Anthropic and KV are faked)
+// Run: node --test worker/test/*.test.mjs   (no dependencies; Anthropic and KV are faked)
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import worker from "../src/worker.js";

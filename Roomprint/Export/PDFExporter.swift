@@ -47,8 +47,9 @@ struct ReportData {
         createdOn = Date()
         currencyCode = Money.code
         rooms = home.sortedRooms.compactMap { room -> ReportRoom? in
+            // Most valuable first: what an adjuster (and the owner) looks at first.
             let items = room.items
-                .sorted { $0.createdAt < $1.createdAt }
+                .sorted { ($0.totalValue, $1.createdAt) > ($1.totalValue, $0.createdAt) }
                 .map { item in
                     ReportItem(
                         name: item.displayName,

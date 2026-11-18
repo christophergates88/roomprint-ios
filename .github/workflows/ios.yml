@@ -31,7 +31,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - run: node --test worker/test/
+      - run: node --test worker/test/*.test.mjs
 
   app:
     name: Build, archive, screenshots
@@ -52,12 +52,15 @@ jobs:
           xcodebuild -version > ci/xcode.txt
 
       - name: Build for the simulator (Release)
+        timeout-minutes: 15
         run: tools/ci-build.sh sim
 
       - name: Archive for the App Store (unsigned)
+        timeout-minutes: 15
         run: tools/ci-build.sh archive
 
       - name: Screenshots (6.9-inch, demo mode)
+        timeout-minutes: 20
         run: tools/ci-shots.sh
 
       - name: Publish results to the ci-results branch

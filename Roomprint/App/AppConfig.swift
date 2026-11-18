@@ -22,7 +22,8 @@ enum AppConfig {
     /// Every device gets this many scans before it needs credits.
     static let freeScans = 1
     /// UserDefaults key: the person agreed that scan frames may go to the scan service and Anthropic.
-    static let aiConsentKey = "scanAIConsent"
+    /// Change the version suffix whenever what a scan sends, or who receives it, changes: everyone is asked again.
+    static let aiConsentKey = "scanAIConsent.v1"
     /// How much video goes to the model: one frame about every `scanFrameInterval` seconds, at most `scanMaxFrames`.
     static let scanFrameInterval: Double = 1.5
     static let scanMaxFrames = 80

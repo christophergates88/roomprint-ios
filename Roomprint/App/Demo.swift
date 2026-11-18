@@ -38,16 +38,16 @@ enum Demo {
         let items: [SampleItem]
     }
 
-    private static let rooms: [SampleRoom] = [
+    private static let mainRooms: [SampleRoom] = [
         SampleRoom(name: "Living room", symbol: "sofa.fill", items: [
             SampleItem(name: "65-inch 4K TV", brand: "Samsung", model: "QN65Q80D", serial: "0B4R3CAX500213N",
                        value: 1300, receipt: true, symbol: "tv"),
             SampleItem(name: "Sectional sofa", value: 2400, symbol: "sofa.fill"),
-            SampleItem(name: "Recliner", brand: "La-Z-Boy", value: 1100, symbol: "chair.lounge.fill"),
+            SampleItem(name: "Recliner", brand: "La-Z-Boy", value: 1100, receipt: true, symbol: "chair.lounge.fill"),
             SampleItem(name: "Sound bar", brand: "Sonos", model: "Arc", value: 900, receipt: true,
                        symbol: "hifispeaker.fill"),
-            SampleItem(name: "Game console", brand: "Sony", model: "PlayStation 5", value: 500,
-                       symbol: "gamecontroller.fill"),
+            SampleItem(name: "Game console", brand: "Sony", model: "PlayStation 5", serial: "E92045YH1187",
+                       value: 500, symbol: "gamecontroller.fill"),
             SampleItem(name: "Area rug, 8 × 10", value: 650, symbol: "square.grid.3x3.fill"),
             SampleItem(name: "Books, about 80", value: 640, symbol: "books.vertical.fill"),
             SampleItem(name: "Coffee table", value: 450, symbol: "table.furniture.fill"),
@@ -56,53 +56,88 @@ enum Demo {
         SampleRoom(name: "Kitchen", symbol: "refrigerator.fill", items: [
             SampleItem(name: "French-door refrigerator", brand: "LG", model: "LRFXS2503S", serial: "211KRHT2X419",
                        value: 2300, symbol: "refrigerator.fill"),
-            SampleItem(name: "Electric range", brand: "GE", model: "JB735", value: 1150, symbol: "stove.fill"),
+            SampleItem(name: "Electric range", brand: "GE", model: "JB735", serial: "GT418390D", value: 1150,
+                       symbol: "stove.fill"),
             SampleItem(name: "Dishwasher", brand: "Bosch", model: "500 Series", serial: "FD 0412 00123",
                        value: 1050, symbol: "dishwasher.fill"),
-            SampleItem(name: "Cookware set, 10 pieces", brand: "All-Clad", model: "D3", value: 800,
+            SampleItem(name: "Cookware set, 10 pieces", brand: "All-Clad", model: "D3", value: 800, receipt: true,
                        symbol: "frying.pan.fill"),
             SampleItem(name: "Espresso machine", brand: "Breville", model: "Barista Express", value: 700,
                        receipt: true, symbol: "cup.and.saucer.fill"),
-            SampleItem(name: "Stand mixer", brand: "KitchenAid", model: "Artisan", value: 450, symbol: "fork.knife"),
+            SampleItem(name: "Stand mixer", brand: "KitchenAid", model: "Artisan", value: 450, receipt: true,
+                       symbol: "fork.knife"),
             SampleItem(name: "Dishes and glassware, service for 8", value: 400, symbol: "wineglass.fill"),
             SampleItem(name: "Bar stools", quantity: 3, value: 140, symbol: "chair.fill"),
-            SampleItem(name: "Microwave", brand: "Panasonic", value: 280, symbol: "microwave.fill")
+            SampleItem(name: "Microwave", brand: "Panasonic", model: "NN-SN966S", serial: "6E21070584",
+                       value: 280, symbol: "microwave.fill")
         ]),
         SampleRoom(name: "Primary bedroom", symbol: "bed.double.fill", items: [
             SampleItem(name: "Clothing and shoes", value: 4500, notes: "Estimated total", symbol: "tshirt.fill"),
             SampleItem(name: "King bed and mattress", brand: "Tempur-Pedic", value: 3200, receipt: true,
                        symbol: "bed.double.fill"),
             SampleItem(name: "Jewelry", value: 2500, notes: "Get a written appraisal", symbol: "gift.fill"),
-            SampleItem(name: "Dresser", value: 900, symbol: "cabinet.fill"),
+            SampleItem(name: "Dresser", value: 900, receipt: true, symbol: "cabinet.fill"),
             SampleItem(name: "Nightstands", quantity: 2, value: 250, symbol: "lamp.table.fill")
         ]),
         SampleRoom(name: "Office", symbol: "desktopcomputer", items: [
             SampleItem(name: "Laptop", brand: "Dell", model: "XPS 14", serial: "7HQ2YX3", value: 1500,
                        receipt: true, symbol: "laptopcomputer"),
-            SampleItem(name: "Desk chair", brand: "Herman Miller", model: "Aeron", value: 1400, symbol: "chair.fill"),
-            SampleItem(name: "Standing desk", value: 800, symbol: "table.furniture.fill"),
-            SampleItem(name: "27-inch monitor", brand: "Dell", model: "U2724D", value: 520, symbol: "display"),
-            SampleItem(name: "Printer", brand: "Brother", model: "MFC-L2750DW", value: 300, symbol: "printer.fill")
+            SampleItem(name: "Desk chair", brand: "Herman Miller", model: "Aeron", value: 1400, receipt: true,
+                       symbol: "chair.fill"),
+            SampleItem(name: "Standing desk", value: 800, receipt: true, symbol: "table.furniture.fill"),
+            SampleItem(name: "27-inch monitor", brand: "Dell", model: "U2724D", serial: "CN0F9K3M7441", value: 520,
+                       symbol: "display"),
+            SampleItem(name: "Printer", brand: "Brother", model: "MFC-L2750DW", serial: "U64281J9N213", value: 300,
+                       symbol: "printer.fill")
         ]),
         SampleRoom(name: "Garage", symbol: "car.fill", items: [
             SampleItem(name: "Riding mower", brand: "John Deere", model: "S130", serial: "1GXS130EAPL012345",
                        value: 2600, symbol: "leaf.fill"),
-            SampleItem(name: "Bicycles", quantity: 2, value: 700, symbol: "bicycle"),
-            SampleItem(name: "Cordless tool set", brand: "DeWalt", model: "20V MAX", value: 650,
+            SampleItem(name: "Bicycles", quantity: 2, value: 700, receipt: true, symbol: "bicycle"),
+            SampleItem(name: "Cordless tool set", brand: "DeWalt", model: "20V MAX", value: 650, receipt: true,
                        symbol: "wrench.and.screwdriver.fill"),
             SampleItem(name: "Kayaks", quantity: 2, value: 550, symbol: "water.waves"),
-            SampleItem(name: "Chest freezer", brand: "Frigidaire", value: 450, symbol: "snowflake"),
-            SampleItem(name: "Pressure washer", brand: "Ryobi", value: 400, symbol: "drop.fill")
+            SampleItem(name: "Chest freezer", brand: "Frigidaire", serial: "WB34T1180", value: 450,
+                       symbol: "snowflake"),
+            SampleItem(name: "Pressure washer", brand: "Ryobi", value: 400, receipt: true, symbol: "drop.fill")
         ]),
         SampleRoom(name: "Bathroom", symbol: "shower.fill", items: [])
     ]
 
-    /// Fills an empty store with the sample home. Does nothing if any home exists.
+    private static let lakeRooms: [SampleRoom] = [
+        SampleRoom(name: "Great room", symbol: "sofa.fill", items: [
+            SampleItem(name: "Sectional sofa", value: 2200, receipt: true, symbol: "sofa.fill"),
+            SampleItem(name: "55-inch TV", brand: "Samsung", model: "UN55DU8000", serial: "0D7Y3CBX802114K",
+                       value: 700, symbol: "tv"),
+            SampleItem(name: "Rocking chairs", quantity: 2, value: 180, symbol: "chair.fill")
+        ]),
+        SampleRoom(name: "Dock & boat", symbol: "sailboat.fill", items: [
+            SampleItem(name: "Paddle boards", quantity: 2, value: 600, receipt: true, symbol: "figure.surfing"),
+            SampleItem(name: "Fishing gear", value: 800, symbol: "fish.fill"),
+            SampleItem(name: "Life jackets", quantity: 6, value: 60, symbol: "lifepreserver.fill")
+        ]),
+        SampleRoom(name: "Outdoor & patio", symbol: "tree.fill", items: [
+            SampleItem(name: "Patio furniture set", value: 1500, receipt: true, symbol: "chair.lounge.fill"),
+            SampleItem(name: "Gas grill", brand: "Weber", model: "Genesis E-325s", serial: "51172381", value: 1000,
+                       symbol: "flame.fill")
+        ])
+    ]
+
+    /// Fills an empty store with the sample homes. Does nothing if any home exists.
     @MainActor
     static func seed(into context: ModelContext) {
         let existing = (try? context.fetchCount(FetchDescriptor<Home>())) ?? 0
         guard existing == 0 else { return }
-        let home = Home(name: "Our House", address: "")
+        let now = Date()
+        add(home: "Our House", rooms: mainRooms, created: now.addingTimeInterval(-86400), into: context)
+        add(home: "Lake House", rooms: lakeRooms, created: now, into: context)
+        try? context.save()
+    }
+
+    @MainActor
+    private static func add(home name: String, rooms: [SampleRoom], created: Date, into context: ModelContext) {
+        let home = Home(name: name, address: "")
+        home.createdAt = created
         context.insert(home)
         let now = Date()
         for (order, spec) in rooms.enumerated() {
@@ -131,7 +166,6 @@ enum Demo {
                 }
             }
         }
-        try? context.save()
     }
 
     // MARK: A finished scan (review screen)
