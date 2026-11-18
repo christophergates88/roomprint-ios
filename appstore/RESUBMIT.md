@@ -30,6 +30,8 @@ Settings, the private scan key.
 
    - If the Mac asks whether Terminal may use the Downloads folder, click **OK**.
    - If a browser opens asking to allow **Wrangler** (Cloudflare), click **Allow**, then go back to Terminal.
+   - If a box says **codesign wants to access key** in your keychain, type your Mac password and click
+     **Always Allow** (it can ask up to three times, once per part of the app).
    - It ends with "Done: Roomprint 1.0 (…) is with Apple". If it stops with "!!", send Claude the file
      `ship.log` from that folder.
    - If the folder isn't there, paste this instead:
