@@ -15,6 +15,9 @@ struct ExportView: View {
     @State private var working = false
     @State private var errorText: String?
     @State private var showPaywall = false
+    @State private var preview: IdentifiedURL?
+
+    private enum After { case share, preview }
 
     var body: some View {
         NavigationStack {
@@ -76,6 +79,17 @@ struct ExportView: View {
                         }
                     }
                     .disabled(working || (usePassword && password.isEmpty) || home.allItems.isEmpty)
+
+                    Button {
+                        if let pdfURL {
+                            preview = IdentifiedURL(url: pdfURL)
+                        } else {
+                            makePDF(then: .preview)
+                        }
+                    } label: {
+                        Label("Preview the PDF", systemImage: "doc.text.magnifyingglass")
+                    }
+                    .disabled(working || (usePassword && password.isEmpty) || home.allItems.isEmpty)
                 } header: {
                     Text("PDF record")
                 } footer: {
@@ -122,6 +136,9 @@ struct ExportView: View {
             .onChange(of: usePassword) { _, _ in pdfURL = nil }
             .onChange(of: password) { _, _ in pdfURL = nil }
             .sheet(isPresented: $showPaywall) { PaywallView() }
+            .sheet(item: $preview) { file in
+                PDFPreviewView(url: file.url, title: "\(home.name) record", password: usePassword ? password : nil)
+            }
             .sheet(isPresented: $showShare) {
                 if let pdfURL {
                     ActivitySheet(url: pdfURL)
@@ -146,7 +163,7 @@ struct ExportView: View {
         }
     }
 
-    private func makePDF() {
+    private func makePDF(then after: After = .share) {
         working = true
         let report = ReportData(home: home, includePhotos: includePhotos)
         let secret = usePassword ? password : nil
@@ -156,7 +173,10 @@ struct ExportView: View {
                 await MainActor.run {
                     pdfURL = url
                     working = false
-                    showShare = true
+                    switch after {
+                    case .share: showShare = true
+                    case .preview: preview = IdentifiedURL(url: url)
+                    }
                     // Retires the "get a copy out of the house" tip on the home page.
                     UserDefaults.standard.set(true, forKey: "rp.exportedOnce")
                     Haptics.success()

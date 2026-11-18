@@ -30,3 +30,6 @@ build.log
 deploy.log
 worker/.wrangler/
 worker/node_modules/
+
+# Ship script output
+ship.log

@@ -13,6 +13,7 @@ struct ScanView: View {
     @Environment(ScanStore.self) private var scans
 
     private enum Phase: Equatable {
+        case consent
         case start
         case working(ScanStage)
         case review
@@ -25,11 +26,34 @@ struct ScanView: View {
     @State private var frames: [ScanFrame] = []
     @State private var items: [ScanItem] = []
     @State private var workTask: Task<Void, Never>?
+    @State private var showCredits = false
+
+    init(room: Room) {
+        _room = Bindable(room)
+        if Demo.isOn {
+            // Screenshot/demo mode opens straight on a finished scan of this room.
+            if Demo.screen == "review" {
+                _frames = State(initialValue: Demo.scanFrames())
+                _items = State(initialValue: Demo.scanItems())
+                _phase = State(initialValue: .review)
+            }
+        } else if !UserDefaults.standard.bool(forKey: AppConfig.aiConsentKey) {
+            // Nothing leaves the phone until the person has said yes to the AI scan.
+            _phase = State(initialValue: .consent)
+        }
+    }
 
     var body: some View {
         NavigationStack {
             Group {
                 switch phase {
+                case .consent:
+                    AIConsentView(onAllow: {
+                        scans.setAIConsent(true)
+                        phase = .start
+                    }, onDecline: {
+                        dismiss()
+                    })
                 case .start:
                     startScreen
                 case .working(let stage):
@@ -41,7 +65,7 @@ struct ScanView: View {
                 }
             }
             .background(Color.rpGround)
-            .navigationTitle(phase == .review ? "Review \(room.name)" : "Scan \(room.name)")
+            .navigationTitle(navigationTitle)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
@@ -53,6 +77,10 @@ struct ScanView: View {
             }
         }
         .interactiveDismissDisabled(isWorking)
+        .onAppear {
+            if !scans.aiConsent && phase == .start && !Demo.isOn { phase = .consent }
+        }
+        .sheet(isPresented: $showCredits) { ScanCreditsView() }
         // The upload runs in the foreground, so keep the screen awake until the list is back.
         .onChange(of: isWorking, initial: true) { _, working in
             UIApplication.shared.isIdleTimerDisabled = working
@@ -87,6 +115,14 @@ struct ScanView: View {
         return false
     }
 
+    private var navigationTitle: String {
+        switch phase {
+        case .consent: return "Before you scan"
+        case .review: return "Review \(room.name)"
+        default: return "Scan \(room.name)"
+        }
+    }
+
     // MARK: Screens
 
     private var startScreen: some View {
@@ -104,20 +140,25 @@ struct ScanView: View {
                     tip("figure.walk", "Walk slowly around the room, phone held steady, so everything gets a clear look.")
                     tip("tag.fill", "Pause a second on the label of anything expensive — the model or serial number gets read.")
                     tip("checkmark.circle.fill", "You review the list before anything is saved. Swipe off mistakes, tap to fix a value.")
-                    tip("clock", "30 seconds to 3 minutes is plenty. Frames are processed, never stored.")
+                    tip("clock", "30 seconds to 3 minutes is plenty. Roomprint doesn't keep the frames.")
                 }
                 .card()
 
-                Text(scans.balanceLine)
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
+                VStack(spacing: 6) {
+                    Text(scans.isDeveloperBuild ? scans.balanceLine : "Each scan uses 1 room scan. \(scans.balanceLine).")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                        .multilineTextAlignment(.center)
+                    Button("Get more room scans") { showCredits = true }
+                        .font(.footnote.weight(.semibold))
+                }
             }
             .padding()
         }
         .safeAreaInset(edge: .bottom) {
             VStack(spacing: 10) {
                 Button {
-                    recording = true
+                    if scans.canScan { recording = true } else { showCredits = true }
                 } label: {
                     Label("Record a walkthrough", systemImage: "record.circle")
                         .font(.headline)
@@ -127,13 +168,25 @@ struct ScanView: View {
                 .tint(.rpRecordDeep)
                 .controlSize(.large)
 
-                PhotosPicker(selection: $pickedVideo, matching: .videos) {
-                    Label("Choose a video", systemImage: "photo.on.rectangle")
-                        .font(.headline)
-                        .frame(maxWidth: .infinity)
+                if scans.canScan {
+                    PhotosPicker(selection: $pickedVideo, matching: .videos) {
+                        Label("Choose a video", systemImage: "photo.on.rectangle")
+                            .font(.headline)
+                            .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.bordered)
+                    .controlSize(.large)
+                } else {
+                    Button {
+                        showCredits = true
+                    } label: {
+                        Label("Get room scans", systemImage: "cart")
+                            .font(.headline)
+                            .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.bordered)
+                    .controlSize(.large)
                 }
-                .buttonStyle(.bordered)
-                .controlSize(.large)
             }
             .padding()
             .background(.bar)
@@ -196,6 +249,17 @@ struct ScanView: View {
 
     private func start(with url: URL) {
         workTask?.cancel()
+        guard scans.aiConsent else {
+            try? FileManager.default.removeItem(at: url)
+            phase = .consent
+            return
+        }
+        guard scans.canScan else {
+            try? FileManager.default.removeItem(at: url)
+            phase = .start
+            showCredits = true
+            return
+        }
         phase = .working(.reading)
         let roomName = room.name
         let device = scans.deviceID
@@ -212,8 +276,10 @@ struct ScanView: View {
                 frames = labeled
                 items = response.items
                 if items.isEmpty {
-                    phase = .failed("Nothing recognizable was found in that video. Try again with more light, moving slowly.")
+                    phase = .failed("Nothing recognizable was found in that video, so no scan was used. Try again with more light, moving slowly.")
                 } else {
+                    // A finished list costs one scan, kept or not. Failed or empty scans are free.
+                    scans.consumeScan()
                     Haptics.success()
                     phase = .review
                 }
@@ -260,7 +326,6 @@ struct ScanView: View {
                 }
             }
         }
-        scans.consumeScan()
         Haptics.success()
         dismiss()
     }

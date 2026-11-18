@@ -61,8 +61,16 @@ struct SettingsView: View {
                             Image(systemName: "chevron.right").foregroundStyle(.tertiary)
                         }
                     }
+                    Toggle(isOn: Binding(
+                        get: { scans.aiConsent },
+                        set: { scans.setAIConsent($0) }
+                    )) {
+                        Label("Allow AI room scans", systemImage: "sparkles")
+                    }
+                } header: {
+                    Text("Room scans")
                 } footer: {
-                    Text("Film a room and approve the list. Video frames are sent to our scan service for identification and are not stored.")
+                    Text("A room scan sends still frames from your video, label text and the room's name to Roomprint's scan service, which uses Anthropic's Claude AI to list the items. Roomprint doesn't keep the frames; Anthropic doesn't train on them and deletes them within 30 days. Turn this off and Roomprint asks again before the next scan.")
                 }
 
                 Section {
@@ -75,14 +83,32 @@ struct SettingsView: View {
                 } header: {
                     Text("Privacy")
                 } footer: {
-                    Text("Your records stay on this iPhone and are included in your regular iPhone backup. Only room scans send anything off the phone: the video frames, for processing, which are not kept.")
+                    Text("Your records stay on this iPhone and are included in your regular iPhone backup. Only room scans send anything off the phone, and only after you allow it.")
+                }
+
+                Section {
+                    Link(destination: AppConfig.supportURL) {
+                        Label("Help and questions", systemImage: "questionmark.circle")
+                    }
+                    if let mail = URL(string: "mailto:\(AppConfig.supportEmail)?subject=Roomprint%20help") {
+                        Link(destination: mail) {
+                            Label("Email support", systemImage: "envelope")
+                        }
+                    }
+                    Link(destination: AppConfig.privacyURL) {
+                        Label("Privacy policy", systemImage: "hand.raised")
+                    }
+                    Link(destination: AppConfig.termsURL) {
+                        Label("Terms of use", systemImage: "doc.text")
+                    }
+                } header: {
+                    Text("Support")
                 }
 
                 Section {
                     Button("Restore purchase") {
                         Task { await store.restore() }
                     }
-                    Link("Privacy policy", destination: AppConfig.privacyURL)
                     HStack {
                         Text("Version")
                         Spacer()

@@ -25,7 +25,7 @@ struct ScanCreditsView: View {
                         benefit("video.fill", "One walkthrough per room", "A minute or two of video, no snapping.")
                         benefit("list.bullet.rectangle.fill", "Items, brands, values", "Labels are read for model and serial numbers.")
                         benefit("checkmark.circle.fill", "You approve before anything is saved", "Swipe off mistakes, tap to fix a value.")
-                        benefit("hand.raised.fill", "Nothing is stored", "Frames are processed and discarded.")
+                        benefit("hand.raised.fill", "Private", "Roomprint doesn't keep your frames, and the AI doesn't train on them.")
                     }
                     .card()
 
@@ -58,7 +58,7 @@ struct ScanCreditsView: View {
                         }
                     }
 
-                    Text("Credits stay on this iPhone and never expire. \(scans.balanceLine).")
+                    Text("Scans stay on this iPhone, never expire, and are kept if you reinstall the app. \(scans.balanceLine).")
                         .font(.footnote)
                         .foregroundStyle(.secondary)
                         .multilineTextAlignment(.center)

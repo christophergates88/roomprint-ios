@@ -19,6 +19,7 @@ struct RoomDetailView: View {
     @State private var renaming = false
     @State private var newName = ""
     @State private var confirmDelete = false
+    @State private var demoOpened = false
 
     var body: some View {
         Group {
@@ -61,6 +62,13 @@ struct RoomDetailView: View {
         .sheet(isPresented: $showPaywall) { PaywallView() }
         .sheet(isPresented: $showScanCredits) { ScanCreditsView() }
         .fullScreenCover(isPresented: $scanning) { ScanView(room: room) }
+        .onAppear {
+            // Screenshot/demo mode: open the scan screens on their own.
+            if Demo.isOn && !demoOpened && (Demo.screen == "review" || Demo.screen == "scan") {
+                demoOpened = true
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) { scanning = true }
+            }
+        }
         .fullScreenCover(isPresented: $snapping) {
             CaptureView(title: room.name, mode: .multi) { image in
                 addSnap(image)

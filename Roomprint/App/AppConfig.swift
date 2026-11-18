@@ -11,17 +11,18 @@ enum AppConfig {
 
     // MARK: AI room scans
 
-    /// The scan service (a Cloudflare Worker). Frames are sent here, passed to the model, and not stored.
+    /// The scan service (a Cloudflare Worker). Frames are sent here and passed to the model; the service keeps nothing.
     static let scanServiceURL = URL(string: "https://roomprint-scan.christophergates-cg.workers.dev/scan")!
-    /// Shared key the service expects in the X-Roomprint-Key header. Set the same value as the
-    /// Worker's APP_KEY secret. It only stops strangers from running scans on our credits.
-    static let scanAppKey = "rp-scan-2026-k7Qx9mP2vL4nR8tW"
+    /// Shared key the service expects in the X-Roomprint-Key header (see ScanKey.swift).
+    static let scanAppKey = ScanKey.value
     /// Consumable products: scan credits. Must match App Store Connect (and the StoreKit test file).
     static let scans3ProductID = "com.christophergates.roomprint.scans3"
     static let scans10ProductID = "com.christophergates.roomprint.scans10"
     static let scanProductIDs = [scans3ProductID, scans10ProductID]
     /// Every device gets this many scans before it needs credits.
     static let freeScans = 1
+    /// UserDefaults key: the person agreed that scan frames may go to the scan service and Anthropic.
+    static let aiConsentKey = "scanAIConsent"
     /// How much video goes to the model: one frame about every `scanFrameInterval` seconds, at most `scanMaxFrames`.
     static let scanFrameInterval: Double = 1.5
     static let scanMaxFrames = 80
@@ -30,12 +31,13 @@ enum AppConfig {
     /// Upload ceiling, below the service's 14 MB limit. Over it, frames are recompressed and then thinned.
     static let scanUploadBudgetMB: Double = 12
 
-    /// The public Roomprint website (served from docs/ by GitHub Pages; move to the
-    /// custom domain once it is connected).
-    static let websiteURL = URL(string: "https://christophergates88.github.io/roomprint-ios/")!
+    /// The public Roomprint website (docs/ in this repo, served by GitHub Pages at the custom domain).
+    static let websiteURL = URL(string: "https://getroomprint.com/")!
     /// Privacy policy. Apple requires this to be a working public page before review.
-    /// Served from docs/privacy.html by GitHub Pages; change it when the domain is live.
-    static let privacyURL = URL(string: "https://christophergates88.github.io/roomprint-ios/privacy.html")!
+    static let privacyURL = URL(string: "https://getroomprint.com/privacy.html")!
+    /// Help page and the support inbox (forwards to Christopher).
+    static let supportURL = URL(string: "https://getroomprint.com/support.html")!
+    static let supportEmail = "support@getroomprint.com"
     /// Apple's standard end-user license agreement, shown on the paywall.
     static let termsURL = URL(string: "https://www.apple.com/legal/internet-services/itunes/dev/stdeula/")!
 }

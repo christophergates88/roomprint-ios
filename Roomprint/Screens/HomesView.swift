@@ -9,9 +9,11 @@ struct HomesView: View {
     @State private var showNewHome = false
     @State private var showPaywall = false
     @State private var showSettings = false
+    @State private var path = NavigationPath()
+    @State private var demoRouted = false
 
     var body: some View {
-        NavigationStack {
+        NavigationStack(path: $path) {
             ScrollView {
                 VStack(spacing: 16) {
                     if homes.isEmpty {
@@ -39,6 +41,9 @@ struct HomesView: View {
             .navigationDestination(for: Home.self) { home in
                 HomeDetailView(home: home)
             }
+            .navigationDestination(for: Room.self) { room in
+                RoomDetailView(room: room)
+            }
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
@@ -53,6 +58,28 @@ struct HomesView: View {
             .sheet(isPresented: $showPaywall) { PaywallView() }
             .sheet(isPresented: $showSettings) { SettingsView() }
         }
+        .onChange(of: homes.count, initial: true) { _, _ in routeDemo() }
+    }
+
+    /// Screenshot/demo mode: open the screen named by the -RPScreen launch argument.
+    private func routeDemo() {
+        guard Demo.isOn, !demoRouted, let home = homes.first else { return }
+        demoRouted = true
+        switch Demo.screen {
+        case "homes", "onboarding":
+            break
+        case "settings":
+            showSettings = true
+        case "paywall":
+            showPaywall = true
+        case "room", "scan", "review":
+            path.append(home)
+            if let room = home.sortedRooms.first(where: { $0.name == "Kitchen" }) ?? home.sortedRooms.first {
+                path.append(room)
+            }
+        default:
+            path.append(home)
+        }
     }
 
     private var emptyState: some View {
@@ -61,7 +88,7 @@ struct HomesView: View {
                 .padding(.top, 40)
             Text("Let's record your home")
                 .font(.title2.bold())
-            Text("Start with your house, then add rooms and snap what's in them.")
+            Text("Add your home, pick its rooms, then film each room. Roomprint lists what's in it.")
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal)

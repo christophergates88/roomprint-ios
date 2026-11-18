@@ -14,7 +14,8 @@ struct RoomprintApp: App {
                 .environment(scans)
                 .fontDesign(.rounded)
         }
-        .modelContainer(for: [Home.self, Room.self, Item.self, ItemPhoto.self])
+        // Demo mode (launch argument -RPDemo, used for screenshots) keeps everything in memory.
+        .modelContainer(for: [Home.self, Room.self, Item.self, ItemPhoto.self], inMemory: Demo.isOn)
     }
 }
 
@@ -23,13 +24,18 @@ struct RootView: View {
     @AppStorage("didOnboard") private var didOnboard = false
     @AppStorage("lockEnabled") private var lockEnabled = false
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.modelContext) private var context
     @State private var locked = true
+
+    private var showOnboarding: Bool {
+        Demo.isOn ? Demo.screen == "onboarding" : !didOnboard
+    }
 
     var body: some View {
         Group {
-            if !didOnboard {
+            if showOnboarding {
                 OnboardingView { didOnboard = true }
-            } else if lockEnabled && locked {
+            } else if lockEnabled && locked && !Demo.isOn {
                 LockView { locked = false }
             } else {
                 HomesView()
@@ -37,6 +43,7 @@ struct RootView: View {
         }
         .onAppear {
             if !lockEnabled { locked = false }
+            if Demo.isOn { Demo.seed(into: context) }
         }
         .onChange(of: scenePhase) { _, phase in
             if phase == .background { locked = lockEnabled }

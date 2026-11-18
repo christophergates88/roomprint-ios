@@ -11,15 +11,15 @@ struct OnboardingView: View {
     }
 
     private let pages: [Page] = [
-        Page(symbol: "camera.viewfinder",
-             title: "Snap every room",
-             body: "Walk through your home and photograph what you own. Fill in details whenever you like."),
-        Page(symbol: "text.viewfinder",
-             title: "Scan the labels",
-             body: "Point at a model or serial sticker and Roomprint reads it for you."),
-        Page(symbol: "doc.richtext",
+        Page(symbol: "video.badge.waveform.fill",
+             title: "Film a room. Get the list.",
+             body: "Walk slowly through a room with your camera. Roomprint lists what's in it, with brands and estimated replacement values."),
+        Page(symbol: "checkmark.circle.fill",
+             title: "You approve every item",
+             body: "Swipe off mistakes and fix any value before anything is saved. Snap or add single items any time."),
+        Page(symbol: "doc.richtext.fill",
              title: "Ready for any claim",
-             body: "Export a clean PDF of everything you own, room by room. It all stays private on your iPhone.")
+             body: "Export a clean PDF of everything you own, room by room. Your records stay private on your iPhone.")
     ]
 
     var body: some View {

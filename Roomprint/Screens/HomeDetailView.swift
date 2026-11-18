@@ -11,6 +11,8 @@ struct HomeDetailView: View {
     @State private var showEdit = false
     @State private var showReview = false
     @State private var confirmDelete = false
+    @State private var demoPDF: IdentifiedURL?
+    @State private var demoShown = false
 
     private let columns = [GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12)]
 
@@ -80,9 +82,6 @@ struct HomeDetailView: View {
             .padding(.bottom, 6)
             .background(.bar)
         }
-        .navigationDestination(for: Room.self) { room in
-            RoomDetailView(room: room)
-        }
         .navigationDestination(isPresented: $showReview) {
             ReviewView(home: home)
         }
@@ -104,6 +103,10 @@ struct HomeDetailView: View {
             }
         }
         .sheet(isPresented: $showAddRoom) { AddRoomSheet(home: home) }
+        .sheet(item: $demoPDF) { file in
+            PDFPreviewView(url: file.url, title: "\(home.name) record")
+        }
+        .onAppear(perform: showDemoScreen)
         .sheet(isPresented: $showExport) { ExportView(home: home) }
         .sheet(isPresented: $showEdit) { EditHomeSheet(home: home) }
         .confirmationDialog("Delete \(home.name)?", isPresented: $confirmDelete, titleVisibility: .visible) {
@@ -116,6 +119,23 @@ struct HomeDetailView: View {
             }
         } message: {
             Text("This removes every room, item and photo for this home. It can't be undone.")
+        }
+    }
+
+    /// Screenshot/demo mode: open the export screen or the finished PDF on its own.
+    private func showDemoScreen() {
+        guard Demo.isOn, !demoShown else { return }
+        demoShown = true
+        switch Demo.screen {
+        case "export":
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) { showExport = true }
+        case "pdf":
+            let report = ReportData(home: home, includePhotos: true)
+            if let url = try? PDFExporter.writePDF(report, password: nil) {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) { demoPDF = IdentifiedURL(url: url) }
+            }
+        default:
+            break
         }
     }
 

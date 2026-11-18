@@ -76,7 +76,7 @@ enum ScanStage: Equatable {
         switch self {
         case .reading, .extracting: return "Sharp, distinct frames only."
         case .readingLabels: return "Model and serial numbers, on the phone."
-        case .uploading: return "Frames are processed and not stored."
+        case .uploading: return "Only still frames and label text are sent."
         case .waiting: return "Usually under two minutes."
         }
     }
