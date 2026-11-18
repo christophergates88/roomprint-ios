@@ -1,5 +1,6 @@
 import SwiftUI
 import SwiftData
+import StoreKit
 
 /// One home: the total, then a grid of rooms.
 struct HomeDetailView: View {
@@ -13,6 +14,8 @@ struct HomeDetailView: View {
     @State private var confirmDelete = false
     @State private var demoPDF: IdentifiedURL?
     @State private var demoShown = false
+    @Environment(\.requestReview) private var requestReview
+    @AppStorage("rp.askedForReview") private var askedForReview = false
 
     private let columns = [GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12)]
 
@@ -107,7 +110,7 @@ struct HomeDetailView: View {
             PDFPreviewView(url: file.url, title: "\(home.name) record")
         }
         .onAppear(perform: showDemoScreen)
-        .sheet(isPresented: $showExport) { ExportView(home: home) }
+        .sheet(isPresented: $showExport, onDismiss: askForReviewOnce) { ExportView(home: home) }
         .sheet(isPresented: $showEdit) { EditHomeSheet(home: home) }
         .confirmationDialog("Delete \(home.name)?", isPresented: $confirmDelete, titleVisibility: .visible) {
             Button("Delete home and everything in it", role: .destructive) {
@@ -120,6 +123,14 @@ struct HomeDetailView: View {
         } message: {
             Text("This removes every room, item and photo for this home. It can't be undone.")
         }
+    }
+
+    /// After the first record has been exported (the moment the app has proved itself), ask once for an
+    /// App Store rating. iOS decides whether the prompt actually shows and limits how often.
+    private func askForReviewOnce() {
+        guard exportedOnce, !askedForReview, !Demo.isOn, home.itemCount >= 10 else { return }
+        askedForReview = true
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) { requestReview() }
     }
 
     /// Screenshot/demo mode: open the export screen or the finished PDF on its own.

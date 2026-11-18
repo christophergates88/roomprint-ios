@@ -25,7 +25,7 @@ SHOTS = [
     ("pdf.png", "03-claim-ready.png", "A claim-ready\nrecord.", "One tap to the PDF your insurer asks for."),
     ("room.png", "04-proof.png", "Proof for\nevery item.", "Photos, brands, serial numbers, receipts."),
     ("scan.png", "05-walkthrough.png", "One slow\nwalkthrough.", "30 seconds to 3 minutes a room."),
-    ("homes.png", "06-private.png", "Private\nby design.", "Your records stay on your iPhone."),
+    ("homes.png", "06-every-home.png", "Every place\nyou own.", "House, rental, lake house. All private on your iPhone."),
 ]
 
 
@@ -71,7 +71,10 @@ def frame(raw_path, out_path, headline, subline):
         draw.text((x0, y), line, font=head, fill=VELLUM)
         y += 132
     y += 14
-    draw.text((x0, y), subline, font=font(48, "Medium"), fill=MIST)
+    size = 48
+    while size > 30 and draw.textlength(subline, font=font(size, "Medium")) > W - 2 * x0:
+        size -= 2  # shrink a long subline until it fits the width
+    draw.text((x0, y), subline, font=font(size, "Medium"), fill=MIST)
     top = y + 108
 
     # The screen: scaled to fit below the caption, bleeding off the bottom edge.

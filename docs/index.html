@@ -136,7 +136,7 @@ footer a{color:var(--vellum-2)}
         <p class="lede">After a fire, storm or break-in, your insurer asks for a list of everything you lost, with values. Most people forget half of it. Roomprint turns a one-minute video of each room into an itemized, claim-ready record — and you approve every list before it's saved.</p>
         <div class="ctas">
           <a class="btn rec" href="#get">Get the app</a>
-          <a class="btn ghost" href="https://claude.ai/artifact/HReDpAe4wdcj8B2QagFpWJ" target="_blank" rel="noopener">See a sample record</a>
+          <a class="btn ghost" href="sample-record.pdf" target="_blank" rel="noopener">See a sample record</a>
         </div>
         <p class="fine">Free to start · First room scan included · Your records stay on your iPhone</p>
       </div>
@@ -191,7 +191,7 @@ footer a{color:var(--vellum-2)}
         <li><b>Estimated replacement cost</b><span>What a similar new item costs today, with a total by room.</span></li>
         <li><b>Proof for each item</b><span>Each line is saved with the photo or video frame that shows it.</span></li>
         <li><b>A claim-ready PDF</b><span>Every room, every item, photos, values and totals. Pro adds password-protected PDFs and spreadsheet export.</span></li>
-        <li><b>Private by design</b><span>Records stay on your iPhone, in your own backup. Lock the app with Face ID. Scan frames are processed, never stored.</span></li>
+        <li><b>Private by design</b><span>Records stay on your iPhone, in your own backup. Lock the app with Face ID. Room scans ask first, and Roomprint doesn't keep the frames.</span></li>
       </ul>
     </div>
   </section>
@@ -213,7 +213,7 @@ footer a{color:var(--vellum-2)}
       <div class="faq">
         <details><summary>How long does a room take?</summary><p>Film for 30 seconds to 3 minutes, then the app works for a minute or two while you watch. Most homes are done, garage included, inside an hour.</p></details>
         <details><summary>How accurate is the list?</summary><p>It finds the things an insurer cares about — furniture, electronics, appliances, tools, gear — and estimates what each costs new today. You review everything before it's saved: swipe off mistakes, tap to fix a value. Items the scan wasn't sure about are flagged for you.</p></details>
-        <details><summary>Who sees my stuff?</summary><p>Your records stay on your iPhone, in your own backup, and you can lock the app with Face ID. Room scans send only the video frames to our scan service for identification; they're processed and not stored. We don't sell or share anything.</p></details>
+        <details><summary>Who sees my stuff?</summary><p>Your records stay on your iPhone, in your own backup, and you can lock the app with Face ID. A room scan sends still frames from your video to our scan service, which uses Anthropic's Claude AI to list the items, and only after you allow it. Roomprint doesn't keep the frames, and Anthropic doesn't train on them. We don't sell or share anything. <a href="privacy.html">Privacy policy</a></p></details>
         <details><summary>Is this an appraisal?</summary><p>No. Values are estimates of what similar new items cost today. For jewelry, art and collectibles we recommend a written appraisal, and the record gives you the list to take with you.</p></details>
         <details><summary>Will this lower my insurance price?</summary><p>No. Roomprint isn't an insurance product and doesn't give coverage advice. It helps you get paid fully and faster if you ever have a claim, and it gives you a real total to take to your insurance agent when you review your policy.</p></details>
         <details><summary>Do I need to clean or organize first?</summary><p>No. Just put away anything private, like bank papers, ID cards or safe combinations. Film your home as it is.</p></details>
@@ -228,8 +228,9 @@ footer a{color:var(--vellum-2)}
       <div class="who">
         <p class="eyebrow">Get Roomprint</p>
         <h2>Twenty minutes today. Peace of mind for years.</h2>
-        <p>Roomprint for iPhone is headed to the App Store now — the download link lands right here the day it's approved.</p>
-        <p class="store-note">Coming to the App Store</p>
+        <p id="get-line">Roomprint for iPhone is headed to the App Store now. The download button appears right here the day it's approved.</p>
+        <p class="store-note" id="store-note">Coming to the App Store</p>
+        <p id="notify"><a class="btn line" href="mailto:support@getroomprint.com?subject=Tell%20me%20when%20Roomprint%20is%20live&amp;body=Email%20me%20when%20Roomprint%20is%20on%20the%20App%20Store.">Email me when it's live</a></p>
         <p class="contact-line">Questions? support@getroomprint.com</p>
       </div>
     </div>
@@ -240,5 +241,14 @@ footer a{color:var(--vellum-2)}
   <a class="logo" href="#top"><svg aria-hidden="true"><use href="#mark"/></svg>Roomprint</a>
   <span>Made in Georgia's Lake Country · <a href="privacy.html">Privacy</a> · <a href="support.html">Support</a></span>
 </div></footer>
+<script>
+/* The day Roomprint is on the App Store, every "Get the app" button becomes a download link by itself. */
+function rpStore(d){try{var r=d&&d.results&&d.results[0];if(!r||!r.trackViewUrl)return;var u=r.trackViewUrl.split("?")[0];
+document.querySelectorAll('a[href="#get"]').forEach(function(a){a.href=u;a.target="_blank";a.rel="noopener";if(/Get the app/.test(a.textContent))a.textContent="Download on the App Store";});
+var n=document.getElementById("store-note");if(n){n.innerHTML='<a href="'+u+'" target="_blank" rel="noopener" style="text-decoration:none">Download on the App Store</a>';}
+var p=document.getElementById("get-line");if(p){p.textContent="Roomprint for iPhone is on the App Store. Free to download, and your first room scan is included.";}
+var m=document.getElementById("notify");if(m){m.remove();}}catch(e){}}
+</script>
+<script src="https://itunes.apple.com/lookup?bundleId=com.christophergates.roomprint&amp;country=us&amp;callback=rpStore" async></script>
 </body>
 </html>

@@ -54,7 +54,7 @@ Everything App Store Connect asks for, in the order it asks. Edit freely; nothin
 > FREE AND PRO
 > Free covers one home and up to 30 items, with one free room scan. Roomprint Pro is a one-time purchase: unlimited homes and items, password-protected PDFs and spreadsheet export. Room scans beyond the first are sold as small packs of credits.
 >
-> Roomprint is made in Georgia by someone who sells homeowners insurance and has watched claims fall short for want of a list. Make yours before you need it.
+> Roomprint is made in Georgia by someone who has watched claims fall short for want of a list. Make yours before you need it.
 
 **Keywords** (100 chars max, comma-separated, no spaces)
 

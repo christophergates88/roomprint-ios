@@ -4,57 +4,96 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Roomprint Privacy Policy</title>
+<meta name="description" content="How the Roomprint iPhone app handles your information: records stay on your iPhone; room scans are sent to Anthropic's Claude AI only after you allow it.">
 <style>
   body { font: 17px/1.6 -apple-system, system-ui, sans-serif; color: #16263A; background: #F6F4EF; margin: 0; }
   main { max-width: 680px; margin: 0 auto; padding: 40px 20px 60px; }
   h1 { font-size: 30px; margin: 0 0 4px; }
-  h2 { font-size: 19px; margin: 28px 0 6px; }
+  h2 { font-size: 19px; margin: 30px 0 6px; }
   p, li { color: #34404d; }
+  li { margin-bottom: 6px; }
   .muted { color: #5D6A79; font-size: 15px; }
+  .box { background: #fff; border: 1px solid #DDD8CE; border-radius: 12px; padding: 4px 18px; }
+  a { color: #16263A; }
+  @media (prefers-color-scheme: dark) {
+    body { background: #0F1824; color: #E8ECF1; }
+    p, li { color: #C9D2DD; }
+    .muted { color: #9AA7B6; }
+    .box { background: #162231; border-color: #2A384B; }
+    a { color: #E8ECF1; }
+  }
 </style>
 </head>
 <body>
 <main>
   <h1>Roomprint Privacy Policy</h1>
-  <p class="muted">Effective October 18, 2026</p>
+  <p class="muted">Effective November 18, 2026. Replaces the version of October 18, 2026.</p>
 
+  <div class="box">
   <h2>The short version</h2>
-  <p>Roomprint keeps your home records on your iPhone. We don't collect, sell or share your photos or details. The one thing that leaves your phone is a room scan: when you choose to scan a room, still frames from your walkthrough video are sent to our scan service to identify what's in them, and are discarded as soon as the list comes back.</p>
+  <p>Your home records stay on your iPhone. Roomprint has no accounts, no ads, no analytics and no tracking, and we don't sell or share your information.</p>
+  <p>The only thing that ever leaves your phone is a room scan you start, and only after you allow it: still frames from your walkthrough video, the label text your iPhone read from them, and the room's name go to our scan service, which uses Anthropic's Claude AI to list the items. We don't keep them, and Anthropic doesn't use them to train its AI.</p>
+  </div>
 
-  <h2>What stays on your device</h2>
+  <h2>Who we are</h2>
+  <p>Roomprint is made by Christopher Gates in Georgia, USA. Questions about this policy go to <a href="mailto:support@getroomprint.com">support@getroomprint.com</a>.</p>
+
+  <h2>What stays on your iPhone</h2>
   <ul>
-    <li>Homes, rooms and items you enter, including names, values, serial numbers and notes.</li>
-    <li>Photos you take or choose in the app.</li>
-    <li>Your settings, such as Face ID lock.</li>
+    <li>Homes, rooms and items you record, including names, values, brands, model and serial numbers, purchase details and notes.</li>
+    <li>Photos you take or choose in the app, including receipts and labels.</li>
+    <li>PDFs and spreadsheets you export, until you choose to send them somewhere.</li>
+    <li>Your settings, such as Face ID lock and whether room scans may use AI.</li>
   </ul>
-  <p>This information is stored only on your iPhone and in your own iPhone backups (iCloud or computer), which Apple manages. You can delete it at any time by deleting homes or items, or by deleting the app.</p>
+  <p>We can't see any of this. It is stored only on your iPhone and in your own iPhone backups (iCloud or your computer), which Apple manages under its own privacy policy.</p>
+
+  <h2>Room scans: the only data that leaves your phone</h2>
+  <p>A room scan is optional. Before your first one, the app shows exactly what will be sent and asks your permission. Nothing is sent until you tap <b>Allow and continue</b>, and you can withdraw permission any time in Settings, under <b>Allow AI room scans</b>.</p>
+  <ul>
+    <li><b>What is sent:</b> up to 80 still frames from the walkthrough video (never the audio), any label text your iPhone read from those frames, the room's name, and a random identifier the app creates. The identifier isn't linked to you, your Apple ID or your phone's hardware.</li>
+    <li><b>Who receives it:</b> our scan service, which runs on Cloudflare, and Anthropic, PBC, whose Claude AI model names each item and estimates what it would cost to replace.</li>
+    <li><b>What it is used for:</b> only to make the list of items for that room, which comes back to your iPhone. It is saved there only if you approve it.</li>
+    <li><b>What our scan service keeps:</b> none of the frames, label text or room names. It keeps a count of scans per random identifier for two days (to enforce daily limits) and running totals of scans and processing cost.</li>
+    <li><b>What Anthropic does with it:</b> under its commercial terms, Anthropic does not use the frames to train its AI models, and it deletes them within 30 days, except where it must keep them longer by law or to enforce its usage policies. See <a href="https://www.anthropic.com/legal/privacy" rel="noopener">Anthropic's privacy policy</a>.</li>
+    <li><b>Cloudflare</b>, which hosts the scan service, handles the connection (for example your IP address) the way any web host does, to deliver it. It does not use the frames for anything else.</li>
+  </ul>
+  <p>The frames show whatever the camera sees, so before you film, put away anything private, such as bank papers, ID cards or safe combinations.</p>
+
+  <h2>What we don't collect</h2>
+  <p>No name, email address, phone number or account. No location, contacts or browsing data. No advertising identifiers. No analytics, crash-reporting or tracking tools.</p>
 
   <h2>Camera and photos</h2>
-  <p>Roomprint uses the camera to photograph your belongings and their labels. Text on labels is read on your iPhone using Apple's built-in technology; it is not sent anywhere. When you choose photos from your library, only the photos you pick are imported.</p>
-
-  <h2>Room scans</h2>
-  <p>A room scan is optional. When you run one, Roomprint picks a few dozen still frames from your walkthrough video, reads any label text on your iPhone, and sends the frames and that text to our scan service, which uses an AI model (Anthropic's Claude) to name the items and estimate replacement values. The frames are used only to produce that list, are not stored by us, and are not used to train any model. The service keeps a count of scans per day, tied to a random identifier the app makes, to prevent abuse; that identifier is not linked to you, your Apple ID or your phone. The resulting list is saved only on your iPhone, after you approve it.</p>
+  <p>Roomprint uses the camera to film rooms and photograph belongings and their labels. Label text is read on your iPhone with Apple's built-in technology. When you choose photos or videos from your library, only the ones you pick are imported.</p>
 
   <h2>Face ID</h2>
   <p>If you turn on Face ID lock, Apple's system checks your face or passcode. Roomprint never receives your Face ID data.</p>
 
   <h2>Purchases</h2>
-  <p>Roomprint Pro and room-scan credits are sold through the App Store. Apple handles payment; we never see your payment details.</p>
+  <p>Roomprint Pro and room-scan packs are sold through the App Store. Apple handles payment, and we never see your payment details. So that a reinstall doesn't lose them, your scan balance and whether you used the free scan are kept in your iPhone's Keychain.</p>
 
   <h2>Sharing</h2>
-  <p>Roomprint only shares a record when you choose to export a PDF or spreadsheet and send it yourself, for example to your email or your insurer.</p>
+  <p>We don't sell, rent or share your information with anyone. The only other parties involved are the ones named above for room scans. A record leaves the app only when you export a PDF or spreadsheet and send it yourself, for example to your email or your insurer.</p>
 
-  <h2>Analytics and tracking</h2>
-  <p>Roomprint has no analytics, advertising or tracking.</p>
+  <h2>Your choices and deleting your data</h2>
+  <ul>
+    <li>Turn room scans off any time in Settings. The app asks again before the next scan.</li>
+    <li>Delete any item, room or home in the app, or delete the app, to remove your records from your iPhone. Copies in your iPhone backups follow Apple's backup settings.</li>
+    <li>Because our scan service keeps no scan contents and can't tell who you are, there is nothing it holds for us to delete. If you have a question or a request, email <a href="mailto:support@getroomprint.com">support@getroomprint.com</a> and we will answer within one business day.</li>
+  </ul>
+
+  <h2>Security</h2>
+  <p>Room scans travel over encrypted HTTPS connections. You can lock the app with Face ID and add a password to any PDF you export (with Roomprint Pro).</p>
 
   <h2>Children</h2>
   <p>Roomprint is not directed to children under 13 and does not knowingly collect information from them.</p>
 
   <h2>Changes</h2>
-  <p>If this policy changes, we'll update this page and the date above.</p>
+  <p>If this policy changes, we'll update this page and the date at the top. If a change affects what room scans send or who receives it, the app will ask your permission again.</p>
 
   <h2>Contact</h2>
-  <p>Questions? Email <strong>support@getroomprint.com</strong>.</p>
+  <p>Email <a href="mailto:support@getroomprint.com">support@getroomprint.com</a>.</p>
+
+  <p class="muted"><a href="index.html">Roomprint home</a> · <a href="support.html">Support</a></p>
 </main>
 </body>
 </html>

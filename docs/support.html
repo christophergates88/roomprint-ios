@@ -4,32 +4,61 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Roomprint Support</title>
+<meta name="description" content="Help for the Roomprint iPhone app: room scans, scan packs, restoring Pro, exporting your record.">
 <style>
   body { font: 17px/1.6 -apple-system, system-ui, sans-serif; color: #16263A; background: #F6F4EF; margin: 0; }
   main { max-width: 680px; margin: 0 auto; padding: 40px 20px 60px; }
   h1 { font-size: 30px; margin: 0 0 8px; }
-  h2 { font-size: 19px; margin: 28px 0 6px; }
-  p { color: #34404d; }
+  h2 { font-size: 19px; margin: 30px 0 6px; }
+  p, li { color: #34404d; }
+  li { margin-bottom: 6px; }
+  .muted { color: #5D6A79; font-size: 15px; }
+  .mail { display: inline-block; background: #D9472F; color: #fff; text-decoration: none; font-weight: 700; padding: 12px 18px; border-radius: 10px; margin: 6px 0 4px; }
+  a { color: #16263A; }
+  @media (prefers-color-scheme: dark) {
+    body { background: #0F1824; color: #E8ECF1; }
+    p, li { color: #C9D2DD; }
+    .muted { color: #9AA7B6; }
+    a { color: #E8ECF1; }
+  }
 </style>
 </head>
 <body>
 <main>
   <h1>Roomprint Support</h1>
-  <p>Need help? Email <strong>support@getroomprint.com</strong> and we'll reply within one business day.</p>
+  <p>Need help? Email us and we'll reply within one business day.</p>
+  <p><a class="mail" href="mailto:support@getroomprint.com?subject=Roomprint%20help">Email support@getroomprint.com</a></p>
+
+  <h2>How do I record a room?</h2>
+  <p>Open a room and tap <b>Scan room</b>. Film a slow walkthrough, 30 seconds to 3 minutes, holding the phone steady and pausing a second on the label of anything expensive. Roomprint comes back with a list of what it found. Swipe left to remove a mistake, tap an item to fix it, then tap <b>Approve</b>. Nothing is saved until you approve.</p>
+
+  <h2>Why does Roomprint ask before the first scan?</h2>
+  <p>A room scan sends still frames from your video, the label text your iPhone read, and the room's name to Roomprint's scan service, which uses Anthropic's Claude AI to identify items. Roomprint asks your permission first and shows exactly what is sent. Roomprint doesn't keep the frames, and Anthropic doesn't train on them and deletes them within 30 days. You can change your answer any time in <b>Settings &gt; Allow AI room scans</b>. Without it you can still add items with <b>Snap item</b> and <b>Add item</b>. Details are in the <a href="privacy.html">privacy policy</a>.</p>
+
+  <h2>What do room scans cost?</h2>
+  <p>Your first scan is free on every iPhone. After that, scans come in packs of 3 or 10 from the App Store. A scan is used only when a list comes back; if a scan fails or finds nothing, it's free. Scans never expire, and they stay on your iPhone if you delete and reinstall the app. Buy more in <b>Settings &gt; Room scans</b> or from the scan screen.</p>
+
+  <h2>A scan came back wrong or didn't finish</h2>
+  <ul>
+    <li>Turn the lights on and move slowly. Blurry frames are skipped.</li>
+    <li>Keep Roomprint open while it works. The screen stays awake until the list is back.</li>
+    <li>Big rooms work better as two shorter videos (for example, each half of a garage).</li>
+    <li>If it says the daily limit is reached, try again tomorrow. Each iPhone can run 20 scans a day.</li>
+  </ul>
 
   <h2>Where is my data?</h2>
-  <p>Your records stay on your iPhone and are included in your regular iPhone backup. Export a PDF from any home to keep a copy somewhere else. Room scans are the one exception: the video frames go to our scan service so the items can be identified, and they are not stored.</p>
+  <p>Your records stay on your iPhone and are included in your regular iPhone backup. Export a PDF from any home (<b>Save or share the record</b>) and keep a copy somewhere outside your house, such as your email or iCloud Drive. Room scans are the one thing that leaves the phone, and only after you allow it.</p>
 
-  <h2>A room scan came back wrong or didn't finish</h2>
-  <p>Film again with the lights on, moving slowly, and pause a second on the label of anything expensive. Thirty seconds to three minutes is plenty. You review every list before anything is saved, so swipe off mistakes and tap any item to fix its name or value.</p>
-
-  <h2>I bought Pro or scan credits on another device</h2>
-  <p>Open Settings in Roomprint and tap Restore purchase. Use the same Apple ID you bought with. Scan credits are consumable and stay on the device where you bought them.</p>
+  <h2>I bought Pro on another iPhone</h2>
+  <p>Open <b>Settings</b> in Roomprint and tap <b>Restore purchase</b>, signed in with the same Apple ID you bought with. Room-scan packs stay on the iPhone where you bought them.</p>
 
   <h2>The label scanner didn't read my sticker</h2>
-  <p>Get closer, turn on more light, and keep the phone steady. You can always type the model or serial number by hand.</p>
+  <p>Get closer, add light and keep the phone steady. You can always type the model or serial number by hand.</p>
 
-  <p><a href="privacy.html">Privacy policy</a></p>
+  <h2>Is the value an appraisal?</h2>
+  <p>No. Values are estimates of what a similar new item costs today. For jewelry, art and collectibles, get a written appraisal, and ask your insurance agent whether those items should be listed separately on your policy.</p>
+
+  <p class="muted"><a href="index.html">Roomprint home</a> · <a href="privacy.html">Privacy policy</a></p>
 </main>
 </body>
 </html>
