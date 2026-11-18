@@ -1,0 +1,1 @@
+Device type: com.apple.CoreSimulator.SimDeviceType.iPhone-17-Pro-Max / runtime: com.apple.CoreSimulator.SimRuntime.iOS-26-5
