@@ -51,8 +51,9 @@ Settings, the private scan key.
    **10 room scans** are listed. If one is missing, click **+** (or **Edit**) and add it. Their prices should be
    $19.99, $2.99 and $7.99, which is what getroomprint.com shows. If you set different prices, tell Claude and the
    website will be changed to match.
-7. **Screenshots** (top of the page, 6.9-inch display): optional but recommended. Drag in the files from
-   `appstore/screenshots/6.9/` in order.
+7. **Screenshots** (top of the page, 6.9-inch display): optional but recommended. After step 1 they are on
+   the Mac: in Finder open **Downloads > Roomprint-iOS-project > Roomprint-iOS > appstore > screenshots > 6.9**
+   and drag the six files in, 01 first.
 8. Left sidebar > **App Privacy**: check it matches **App Privacy answers** below. Click **Publish** if you
    changed anything.
 9. Top right: **Add for Review**, then **Submit to App Review** (it may say **Resubmit to App Review**).
