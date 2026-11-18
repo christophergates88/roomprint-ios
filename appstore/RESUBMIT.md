@@ -13,7 +13,8 @@ current rules, whatever else the note says:
    screen said "Test build". Review builds now work like the store build: first scan free, then packs.
    "Get more room scans" is on the scan screen and in Settings.
 
-Also new: privacy policy rewritten for the AI rule (getroomprint.com/privacy.html), the scan service can't
+Also new in the app: a coverage check (your record against your policy's contents coverage), a claim list for
+after a loss, one-tap "often missed" items, a six-month reminder. And: privacy policy rewritten for the AI rule (getroomprint.com/privacy.html), the scan service can't
 cut off long lists, credits survive a reinstall, scan-first onboarding, PDF preview, Help/Email/Terms in
 Settings, the private scan key.
 
@@ -53,7 +54,7 @@ Settings, the private scan key.
    website will be changed to match.
 7. **Screenshots** (top of the page, 6.9-inch display): optional but recommended. After step 1 they are on
    the Mac: in Finder open **Downloads > Roomprint-iOS-project > Roomprint-iOS > appstore > screenshots > 6.9**
-   and drag the six files in, 01 first.
+   and drag the seven files in, 01 first.
 8. Left sidebar > **App Privacy**: check it matches **App Privacy answers** below. Click **Publish** if you
    changed anything.
 9. Top right: **Add for Review**, then **Submit to App Review** (it may say **Resubmit to App Review**).

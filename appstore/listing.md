@@ -48,6 +48,12 @@ Everything App Store Connect asks for, in the order it asks. Edit freely; nothin
 > EXPORT A CLAIM-READY RECORD
 > One tap makes a clean PDF of your whole home — every room, every item, photos, values and totals — the way an adjuster wants to see it. Keep a copy somewhere safe and share it with your agent.
 >
+> ARE YOU COVERED?
+> Enter the contents coverage from your policy and Roomprint shows how it compares with what you actually own. It also points out things policies often cap, like jewelry, firearms and collectibles, and writes a note you can send your agent.
+>
+> IF THE WORST HAPPENS
+> After a fire, theft or storm, mark what was lost or damaged, by room or all at once, and get a claim list PDF and spreadsheet with the date of loss and your claim number, ready for the adjuster.
+>
 > PRIVATE BY DESIGN
 > Your records stay on your iPhone, in your own backup. Lock the app with Face ID. A room scan asks first, then sends still frames from your video to our scan service, which uses Anthropic's Claude AI to list the items. Roomprint keeps no frames, and Anthropic doesn't train on them.
 >
@@ -64,7 +70,7 @@ Everything App Store Connect asks for, in the order it asks. Edit freely; nothin
 
 **What's New in This Version**
 
-> First release. Film a room, approve the list, export a claim-ready PDF.
+> First release. Film a room, approve the list, check your coverage, export a claim-ready PDF.
 
 ## In-app purchases
 

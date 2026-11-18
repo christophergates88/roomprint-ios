@@ -22,10 +22,11 @@ RECORD = (229, 83, 61)
 SHOTS = [
     ("review.png", "01-film-a-room.png", "Film a room.\nGet the list.", "Every item named and valued. You approve it."),
     ("home.png", "02-whole-home.png", "Know what your\nhome holds.", "Every room, every item, one total."),
-    ("pdf.png", "03-claim-ready.png", "A claim-ready\nrecord.", "One tap to the PDF your insurer asks for."),
-    ("room.png", "04-proof.png", "Proof for\nevery item.", "Photos, brands, serial numbers, receipts."),
-    ("scan.png", "05-walkthrough.png", "One slow\nwalkthrough.", "30 seconds to 3 minutes a room."),
-    ("homes.png", "06-every-home.png", "Every place\nyou own.", "House, rental, lake house. All private on your iPhone."),
+    ("coverage.png", "03-covered.png", "Are you\ncovered?", "See your record against your policy."),
+    ("pdf.png", "04-claim-ready.png", "A claim-ready\nrecord.", "One tap to the PDF your insurer asks for."),
+    ("room.png", "05-proof.png", "Proof for\nevery item.", "Photos, brands, serial numbers, receipts."),
+    ("scan.png", "06-walkthrough.png", "One slow\nwalkthrough.", "30 seconds to 3 minutes a room."),
+    ("homes.png", "07-every-home.png", "Every place\nyou own.", "House, rental, lake house. All private on your iPhone."),
 ]
 
 
