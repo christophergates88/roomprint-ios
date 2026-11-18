@@ -1,0 +1,76 @@
+# Compiles Roomprint with Xcode 26 on every push, makes an unsigned App Store archive to prove the
+# release build works, and takes App Store screenshots from demo mode on the 6.9-inch simulator.
+# Results (build log, problems list, screenshots) are force-pushed to the ci-results branch.
+name: iOS build and screenshots
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "Roomprint/**"
+      - "Roomprint.xcodeproj/**"
+      - "worker/**"
+      - "tools/**"
+      - ".github/workflows/ios.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: ios-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  worker:
+    name: Scan service tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node --test worker/test/
+
+  app:
+    name: Build, archive, screenshots
+    runs-on: macos-26
+    timeout-minutes: 45
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Pick the newest Xcode 26
+        run: |
+          ls -d /Applications/Xcode*.app
+          XC=$(ls -d /Applications/Xcode_26*.app 2>/dev/null | grep -vi beta | sort -V | tail -1)
+          if [ -n "$XC" ]; then sudo xcode-select -s "$XC"; fi
+          xcodebuild -version
+          mkdir -p ci/shots
+          xcodebuild -version > ci/xcode.txt
+
+      - name: Build for the simulator (Release)
+        run: tools/ci-build.sh sim
+
+      - name: Archive for the App Store (unsigned)
+        run: tools/ci-build.sh archive
+
+      - name: Screenshots (6.9-inch, demo mode)
+        run: tools/ci-shots.sh
+
+      - name: Publish results to the ci-results branch
+        if: always()
+        run: |
+          cp -R ci /tmp/ci-out
+          echo "$GITHUB_SHA" > /tmp/ci-out/SHA
+          echo "${{ job.status }}" > /tmp/ci-out/STATUS
+          date -u +%Y-%m-%dT%H:%M:%SZ > /tmp/ci-out/WHEN
+          cd /tmp/ci-out
+          git init -q
+          git checkout -q -b ci-results
+          git add -A
+          git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
+            commit -qm "CI results for ${GITHUB_SHA::7}"
+          git push -qf "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" ci-results

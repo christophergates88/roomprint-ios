@@ -16,6 +16,11 @@
 
 const ANTHROPIC_URL = "https://api.anthropic.com/v1/messages";
 const ANTHROPIC_VERSION = "2023-06-01";
+// Bumped on every change so the ship script can confirm the new code is live (GET /health).
+const SERVICE_VERSION = "2026-11-18";
+// Room lists can be long: 60 items is about 6,000 output tokens. Leave plenty of room so a big room
+// is never cut off mid-list (only the tokens actually written are billed).
+const MAX_OUTPUT_TOKENS = 16000;
 
 // USD per million tokens [input, output], standard tier (platform.claude.com/docs/en/about-claude/pricing).
 const PRICES = {
@@ -71,7 +76,8 @@ export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
     if (request.method === "GET" && url.pathname === "/health") {
-      return json({ ok: true, model: env.MODEL || "claude-sonnet-5-5", configured: Boolean(env.ANTHROPIC_API_KEY && env.APP_KEY) });
+      return json({ ok: true, version: SERVICE_VERSION, model: env.MODEL || "claude-sonnet-5-5",
+        configured: Boolean(env.ANTHROPIC_API_KEY && env.APP_KEY) });
     }
     if (request.method === "GET" && url.pathname === "/credit") {
       return json(await creditCheck(env));
@@ -111,10 +117,12 @@ export default {
       return json({ error: "too many or too large frames" }, 413);
     }
 
-    // Daily caps protect the credit balance from a runaway or hostile client.
+    // Daily caps protect the credit balance from a runaway or hostile client. Checked here, counted
+    // only once a list comes back, so a failed scan never uses up a phone's daily allowance.
     const day = new Date().toISOString().slice(0, 10);
+    let countScan = async () => {};
     if (env.ROOMPRINT_KV) {
-      const perDevice = parseInt(env.MAX_SCANS_PER_DEVICE_PER_DAY || "6", 10);
+      const perDevice = parseInt(env.MAX_SCANS_PER_DEVICE_PER_DAY || "20", 10);
       const global = parseInt(env.MAX_SCANS_PER_DAY || "150", 10);
       const dKey = `scans:${day}:${device}`;
       const gKey = `scans:${day}:all`;
@@ -127,10 +135,10 @@ export default {
       if (g >= global) {
         return json({ error: "The scan service is busy today. Try again tomorrow." }, 429);
       }
-      ctx.waitUntil(Promise.all([
+      countScan = () => Promise.all([
         env.ROOMPRINT_KV.put(dKey, String(d + 1), { expirationTtl: 172800 }),
         env.ROOMPRINT_KV.put(gKey, String(g + 1), { expirationTtl: 172800 }),
-      ]));
+      ]);
     }
 
     // Read the app's messages array as bytes (I/O, not CPU) and wrap it without parsing it.
@@ -139,7 +147,7 @@ export default {
       return json({ error: "too many or too large frames" }, 413);
     }
     const model = env.MODEL || "claude-sonnet-5-5";
-    const head = `{"model":${JSON.stringify(model)},"max_tokens":4000,"system":${JSON.stringify(SYSTEM_PROMPT)},"messages":`;
+    const head = `{"model":${JSON.stringify(model)},"max_tokens":${MAX_OUTPUT_TOKENS},"system":${JSON.stringify(SYSTEM_PROMPT)},"messages":`;
     const body = new Blob([head, messagesBytes, "}"], { type: "application/json" });
 
     let resp;
@@ -167,15 +175,17 @@ export default {
     }
     const data = await resp.json();
     const text = (data.content || []).filter((c) => c.type === "text").map((c) => c.text).join("\n");
-    const parsed = extractJSON(text);
+    // A cut-off answer (stop_reason "max_tokens") still holds every item written before the cut.
+    const parsed = extractJSON(text) || salvageItems(text);
     if (!parsed || !Array.isArray(parsed.items)) {
       return json({ error: "The model returned something unexpected. Try again.", raw: text.slice(0, 400) }, 502);
     }
     const items = parsed.items.map((it, i) => normalizeItem(it, i, frameCount)).filter(Boolean);
+    if (items.length > 0) ctx.waitUntil(countScan());
     if (env.ROOMPRINT_KV && data.usage) {
       ctx.waitUntil(recordUsage(env, day, model, data.usage));
     }
-    return json({ items, model, usage: data.usage || null });
+    return json({ items, model, usage: data.usage || null, truncated: data.stop_reason === "max_tokens" });
   },
 };
 
@@ -269,6 +279,34 @@ function extractJSON(text) {
   } catch {
     return null;
   }
+}
+
+// Recovers the complete item objects from a JSON answer that was cut off partway through the list.
+function salvageItems(text) {
+  if (!text) return null;
+  const start = text.indexOf("[", text.indexOf('"items"'));
+  if (start < 0) return null;
+  const items = [];
+  let depth = 0, inString = false, escaped = false, objStart = -1;
+  for (let i = start + 1; i < text.length; i++) {
+    const ch = text[i];
+    if (inString) {
+      if (escaped) escaped = false;
+      else if (ch === "\\") escaped = true;
+      else if (ch === '"') inString = false;
+      continue;
+    }
+    if (ch === '"') inString = true;
+    else if (ch === "{") { if (depth === 0) objStart = i; depth++; }
+    else if (ch === "}") {
+      depth--;
+      if (depth === 0 && objStart >= 0) {
+        try { items.push(JSON.parse(text.slice(objStart, i + 1))); } catch { /* skip a broken one */ }
+        objStart = -1;
+      }
+    } else if (ch === "]" && depth === 0) break;
+  }
+  return items.length ? { items } : null;
 }
 
 function json(obj, status = 200) {
