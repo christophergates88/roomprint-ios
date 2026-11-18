@@ -123,6 +123,44 @@ struct RoomDetailView: View {
                 .font(.subheadline.weight(.semibold))
                 .textCase(nil)
             }
+
+            // Cameras miss what's in drawers and cabinets. One tap adds a typical estimate to adjust.
+            let missed = MissedItem.suggestions(for: room)
+            if !missed.isEmpty {
+                Section {
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 8) {
+                            ForEach(missed) { suggestion in
+                                Button {
+                                    addMissed(suggestion)
+                                } label: {
+                                    HStack(spacing: 6) {
+                                        Image(systemName: "plus")
+                                            .font(.caption.weight(.bold))
+                                        VStack(alignment: .leading, spacing: 0) {
+                                            Text(suggestion.name).font(.subheadline.weight(.semibold))
+                                            Text("about \(Money.string(suggestion.value))")
+                                                .font(.caption)
+                                                .foregroundStyle(.secondary)
+                                        }
+                                    }
+                                    .padding(.horizontal, 12)
+                                    .padding(.vertical, 8)
+                                    .background(Color.accentColor.opacity(0.10), in: Capsule())
+                                }
+                                .buttonStyle(.plain)
+                            }
+                        }
+                        .padding(.vertical, 2)
+                    }
+                    .listRowInsets(EdgeInsets(top: 8, leading: 12, bottom: 8, trailing: 0))
+                } header: {
+                    Text("Often missed here")
+                        .textCase(nil)
+                } footer: {
+                    Text("Tap to add one with a typical value, then tap the item to make it match yours.")
+                }
+            }
         }
         .scrollContentBackground(.hidden)
     }
@@ -201,6 +239,21 @@ struct RoomDetailView: View {
 
     private func startSnap() {
         if canAddItem { snapping = true } else { showPaywall = true }
+    }
+
+    /// Adds a commonly forgotten thing with a starting estimate the owner can correct.
+    private func addMissed(_ suggestion: MissedItem) {
+        guard canAddItem else {
+            showPaywall = true
+            return
+        }
+        let item = Item()
+        item.name = suggestion.name
+        item.unitValue = suggestion.value
+        item.notes = "Estimated total"
+        context.insert(item)
+        item.room = room
+        Haptics.tap()
     }
 
     private func startAdd() {

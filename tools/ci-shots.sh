@@ -43,6 +43,8 @@ DATA="$(xcrun simctl get_app_container "$UDID" "$BUNDLE" data 2>/dev/null)"
 find "$DATA/tmp" -maxdepth 1 -name '*.pdf' -exec cp {} ci/shots/sample-record.pdf \; 2>/dev/null
 [ -f ci/shots/sample-record.pdf ] && echo "saved: sample-record.pdf"
 shoot export 9
+shoot coverage 9
+shoot claim 9
 # Dark mode: any unknown screen name opens the home screen.
 xcrun simctl ui "$UDID" appearance dark || true
 shoot home-dark 8

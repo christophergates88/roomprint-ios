@@ -19,6 +19,14 @@ struct ReportItem {
     let needsDetails: Bool
     let notes: String
     let thumb: Data?
+    var lossStatus: String = ""
+}
+
+/// Set on a report that is a claim list: only the items marked lost or damaged.
+struct ClaimInfo {
+    let cause: String
+    let lossDate: Date?
+    let number: String
 }
 
 struct ReportRoom {
@@ -34,6 +42,8 @@ struct ReportData {
     let createdOn: Date
     let rooms: [ReportRoom]
     let currencyCode: String
+    let claim: ClaimInfo?
+    let coverageLimit: Double
 
     var total: Double { rooms.reduce(0) { $0 + $1.total } }
     var itemCount: Int { rooms.reduce(0) { $0 + $1.count } }
@@ -41,7 +51,9 @@ struct ReportData {
     var needsDetails: Int { rooms.flatMap { $0.items }.filter { $0.needsDetails }.count }
 
     @MainActor
-    init(home: Home, includePhotos: Bool) {
+    init(home: Home, includePhotos: Bool, claimOnly: Bool = false) {
+        claim = claimOnly ? ClaimInfo(cause: home.lossCause, lossDate: home.lossDate, number: home.claimNumber.trimmed) : nil
+        coverageLimit = home.coverageLimit
         homeName = home.name
         address = home.address
         createdOn = Date()
@@ -49,6 +61,7 @@ struct ReportData {
         rooms = home.sortedRooms.compactMap { room -> ReportRoom? in
             // Most valuable first: what an adjuster (and the owner) looks at first.
             let items = room.items
+                .filter { !claimOnly || $0.isClaimed }
                 .sorted { ($0.totalValue, $1.createdAt) > ($1.totalValue, $0.createdAt) }
                 .map { item in
                     ReportItem(
@@ -65,7 +78,8 @@ struct ReportData {
                         hasProof: item.hasProof,
                         needsDetails: item.needsDetails,
                         notes: item.notes,
-                        thumb: includePhotos ? item.coverThumb : nil)
+                        thumb: includePhotos ? item.coverThumb : nil,
+                        lossStatus: item.lossStatus)
                 }
             return items.isEmpty ? nil : ReportRoom(name: room.name, items: items)
         }
@@ -99,7 +113,7 @@ enum PDFExporter {
         let safe = report.homeName
             .components(separatedBy: CharacterSet(charactersIn: "/\\:?%*|\"<>"))
             .joined(separator: "-")
-        return "\(safe) Home Record.\(ext)"
+        return report.claim == nil ? "\(safe) Home Record.\(ext)" : "\(safe) Claim List.\(ext)"
     }
 
     static func writePDF(_ report: ReportData, password: String?) throws -> URL {
@@ -122,7 +136,9 @@ enum PDFExporter {
         }
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "yyyy-MM-dd"
-        var lines = ["Room,Item,Brand,Model,Serial number,Quantity,Replacement value each,Replacement value total,Price paid,Purchase date,Receipt,Notes"]
+        let isClaim = report.claim != nil
+        var lines = ["Room,Item,Brand,Model,Serial number,Quantity,Replacement value each,Replacement value total,Price paid,Purchase date,Receipt,Notes"
+                     + (isClaim ? ",Lost or damaged,Age in years" : "")]
         for room in report.rooms {
             for item in room.items {
                 let row: [String] = [
@@ -134,7 +150,10 @@ enum PDFExporter {
                     item.purchaseDate.map { dateFormatter.string(from: $0) } ?? "",
                     item.hasReceipt ? "Yes" : "No",
                     field(item.notes)
-                ]
+                ] + (isClaim ? [
+                    item.lossStatus == "damaged" ? "Damaged" : "Lost",
+                    item.purchaseDate.map { String(max(0, Calendar.current.dateComponents([.year], from: $0, to: Date()).year ?? 0)) } ?? ""
+                ] : [])
                 lines.append(row.joined(separator: ","))
             }
         }
@@ -181,12 +200,20 @@ enum PDFExporter {
             newPage()
             fill(CGRect(x: 0, y: 0, width: page.width, height: 150), navy)
             drawLogo(at: CGPoint(x: margin, y: 34), size: 30)
-            text("ROOMPRINT HOME RECORD", .boldSystemFont(ofSize: 9), vellum.withAlphaComponent(0.8),
+            text(report.claim == nil ? "ROOMPRINT HOME RECORD" : "CLAIM LIST: CONTENTS LOST OR DAMAGED",
+                 .boldSystemFont(ofSize: 9), vellum.withAlphaComponent(0.8),
                  in: CGRect(x: margin + 40, y: 44, width: 300, height: 14))
             text(report.homeName, .boldSystemFont(ofSize: 26), vellum,
                  in: CGRect(x: margin, y: 78, width: width, height: 32))
             let dateText = report.createdOn.formatted(date: .long, time: .omitted)
-            let sub = [report.address, "Created \(dateText)"].filter { !$0.isEmpty }.joined(separator: "   ·   ")
+            var subParts = [report.address, "Created \(dateText)"]
+            if let claim = report.claim {
+                subParts = [report.address]
+                if let lossDate = claim.lossDate { subParts.append("Date of loss \(lossDate.formatted(date: .long, time: .omitted))") }
+                if !claim.cause.isEmpty { subParts.append(claim.cause) }
+                if !claim.number.isEmpty { subParts.append("Claim \(claim.number)") }
+            }
+            let sub = subParts.filter { !$0.isEmpty }.joined(separator: "   ·   ")
             text(sub, .systemFont(ofSize: 10), vellum.withAlphaComponent(0.8),
                  in: CGRect(x: margin, y: 114, width: width, height: 16))
             y = 172
@@ -194,7 +221,7 @@ enum PDFExporter {
             // Summary boxes
             let boxW = (width - 20) / 3
             let boxes: [(String, String, String)] = [
-                ("ESTIMATED REPLACEMENT VALUE", report.money(report.total), "Contents only"),
+                (report.claim == nil ? "ESTIMATED REPLACEMENT VALUE" : "REPLACEMENT VALUE CLAIMED", report.money(report.total), "Contents only"),
                 ("ITEMS", "\(report.itemCount)", "\(report.rooms.count) rooms"),
                 ("NEED PROOF", "\(report.needsProof)", "No serial or receipt")
             ]
@@ -233,15 +260,23 @@ enum PDFExporter {
 
             // To finish
             var todos: [String] = []
-            if report.needsProof > 0 {
+            if report.claim != nil {
+                todos.append("Send this list to your adjuster with your claim number. Keep damaged items until they have been inspected.")
+                todos.append("Add receipts, serial numbers and photos for the most valuable items if you still can.")
+            } else if report.coverageLimit > 0 && report.total > report.coverageLimit {
+                todos.append("This record totals \(report.money(report.total - report.coverageLimit)) more than the \(report.money(report.coverageLimit)) contents coverage you entered. Ask your insurance agent to review it.")
+            }
+            if report.needsProof > 0 && report.claim == nil {
                 todos.append("\(report.needsProof) entries have no serial number or receipt. Add proof for your most valuable items first.")
             }
             if report.needsDetails > 0 {
                 todos.append("\(report.needsDetails) items still need a name or value.")
             }
-            todos.append("Ask your insurance agent whether jewelry, firearms or collectibles should be listed separately on your policy.")
+            if report.claim == nil {
+                todos.append("Ask your insurance agent whether jewelry, firearms or collectibles should be listed separately on your policy.")
+            }
             ensure(40)
-            text("To finish this record", .boldSystemFont(ofSize: 15), ink, in: CGRect(x: margin, y: y, width: width, height: 20))
+            text(report.claim == nil ? "To finish this record" : "Next steps", .boldSystemFont(ofSize: 15), ink, in: CGRect(x: margin, y: y, width: width, height: 20))
             y += 26
             for todo in todos {
                 let height = measure(todo, .systemFont(ofSize: 10), width: width - 16)
@@ -276,6 +311,9 @@ enum PDFExporter {
                     if !item.serial.isEmpty { detail += detail.isEmpty ? "SN \(item.serial)" : "  ·  SN \(item.serial)" }
                     var status = item.hasProof ? (item.serial.isEmpty ? "Receipt or record" : "Serial recorded") : "Needs proof"
                     if item.needsDetails { status = "Needs details" }
+                    if report.claim != nil {
+                        status = (item.lossStatus == "damaged" ? "Damaged" : "Lost or destroyed") + "  ·  " + status
+                    }
                     if let paid = item.purchasePrice, paid > 0 { status += "  ·  Paid \(report.money(paid))" }
                     if let date = item.purchaseDate { status += "  ·  Bought \(date.formatted(date: .abbreviated, time: .omitted))" }
 
@@ -428,7 +466,9 @@ enum PDFExporter {
 
     private static func drawFooter(page number: Int, report: ReportData) {
         let y = page.height - 40
-        text("Private home record for \(report.homeName). Values are estimates, not appraisals.",
+        text(report.claim == nil
+             ? "Private home record for \(report.homeName). Values are estimates, not appraisals."
+             : "Claim list for \(report.homeName). Values are replacement-cost estimates, not appraisals.",
              .systemFont(ofSize: 7.5), muted, in: CGRect(x: margin, y: y, width: 400, height: 12))
         text("Page \(number)", .systemFont(ofSize: 7.5), muted,
              in: CGRect(x: page.width - margin - 100, y: y, width: 100, height: 12), align: .right)

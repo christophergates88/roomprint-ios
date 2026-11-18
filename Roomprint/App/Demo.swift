@@ -138,6 +138,8 @@ enum Demo {
     private static func add(home name: String, rooms: [SampleRoom], created: Date, into context: ModelContext) {
         let home = Home(name: name, address: "")
         home.createdAt = created
+        // The main demo home carries less coverage than it holds, so the coverage check has something to show.
+        if name == "Our House" { home.coverageLimit = 30000 }
         context.insert(home)
         let now = Date()
         for (order, spec) in rooms.enumerated() {

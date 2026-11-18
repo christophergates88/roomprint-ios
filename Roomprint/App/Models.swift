@@ -7,6 +7,12 @@ final class Home {
     var name: String
     var address: String
     var createdAt: Date
+    /// Personal property (contents) coverage on the owner's policy, typed in by them. 0 = not entered.
+    var coverageLimit: Double = 0
+    /// Claim list: what happened, when, and the insurer's claim number. Empty until a loss.
+    var lossCause: String = ""
+    var lossDate: Date? = nil
+    var claimNumber: String = ""
     @Relationship(deleteRule: .cascade, inverse: \Room.home)
     var rooms: [Room] = []
 
@@ -49,6 +55,8 @@ final class Item {
     var hasReceipt: Bool
     var notes: String
     var createdAt: Date
+    /// On the claim list: "" (not claimed), "lost" or "damaged".
+    var lossStatus: String = ""
     var room: Room?
     @Relationship(deleteRule: .cascade, inverse: \ItemPhoto.item)
     var photos: [ItemPhoto] = []
@@ -113,6 +121,9 @@ extension Home {
     var needsDetailsCount: Int { allItems.filter { $0.needsDetails }.count }
     /// Items that still need attention for any reason: no value, no name, or no proof.
     var needsReviewCount: Int { allItems.filter { $0.needsDetails || !$0.hasProof }.count }
+    var claimedItems: [Item] { allItems.filter { $0.isClaimed } }
+    var claimedValue: Double { claimedItems.reduce(0) { $0 + $1.totalValue } }
+    var emptyRoomCount: Int { rooms.filter { $0.items.isEmpty }.count }
 }
 
 extension Room {
@@ -126,6 +137,7 @@ extension Item {
     var totalValue: Double { Double(quantity) * unitValue }
     var hasProof: Bool { !serial.trimmed.isEmpty || hasReceipt }
     var needsDetails: Bool { name.trimmed.isEmpty || unitValue <= 0 }
+    var isClaimed: Bool { !lossStatus.isEmpty }
     var sortedPhotos: [ItemPhoto] { photos.sorted { $0.createdAt < $1.createdAt } }
     var detailLine: String {
         [brand.trimmed, modelNumber.trimmed].filter { !$0.isEmpty }.joined(separator: " ")

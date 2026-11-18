@@ -13,6 +13,8 @@ struct HomeDetailView: View {
     @State private var showReview = false
     @State private var confirmDelete = false
     @State private var demoPDF: IdentifiedURL?
+    @State private var showCoverage = false
+    @State private var showClaim = false
     @State private var demoShown = false
     @Environment(\.requestReview) private var requestReview
     @AppStorage("rp.askedForReview") private var askedForReview = false
@@ -23,6 +25,11 @@ struct HomeDetailView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
                 SummaryCard(home: home, onReview: { showReview = true })
+
+                if home.totalValue > 0 {
+                    Button { showCoverage = true } label: { CoverageCard(home: home) }
+                        .buttonStyle(.plain)
+                }
 
                 Text("Rooms")
                     .font(.title3.bold())
@@ -54,6 +61,35 @@ struct HomeDetailView: View {
                             tipRow(tip)
                         }
                     }
+                }
+
+                if home.itemCount > 0 {
+                    Button { showClaim = true } label: {
+                        HStack(spacing: 12) {
+                            Image(systemName: "flame.fill")
+                                .font(.title3)
+                                .foregroundStyle(Color.rpRecordDeep)
+                                .frame(width: 40, height: 40)
+                                .background(Color.rpRecordDeep.opacity(0.12), in: Circle())
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(home.claimedItems.isEmpty ? "Had a fire, theft or storm?" : "Your claim list: \(Money.string(home.claimedValue))")
+                                    .font(.headline)
+                                    .multilineTextAlignment(.leading)
+                                Text(home.claimedItems.isEmpty
+                                     ? "Mark what was lost and get the list your insurer asks for."
+                                     : "\(home.claimedItems.count) entries marked lost or damaged. Open to send it.")
+                                    .font(.footnote)
+                                    .foregroundStyle(.secondary)
+                                    .multilineTextAlignment(.leading)
+                            }
+                            Spacer(minLength: 6)
+                            Image(systemName: "chevron.right").font(.caption.weight(.bold)).foregroundStyle(.tertiary)
+                        }
+                        .card()
+                        .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .padding(.top, 8)
                 }
             }
             .padding()
@@ -98,6 +134,8 @@ struct HomeDetailView: View {
                 .accessibilityLabel("Export")
                 Menu {
                     Button("Edit home", systemImage: "pencil") { showEdit = true }
+                    Button("Coverage check", systemImage: "checkmark.shield") { showCoverage = true }
+                    Button("Claim list", systemImage: "flame") { showClaim = true }
                     Button("Delete home", systemImage: "trash", role: .destructive) { confirmDelete = true }
                 } label: {
                     Image(systemName: "ellipsis.circle")
@@ -106,6 +144,8 @@ struct HomeDetailView: View {
             }
         }
         .sheet(isPresented: $showAddRoom) { AddRoomSheet(home: home) }
+        .sheet(isPresented: $showCoverage) { CoverageView(home: home) }
+        .sheet(isPresented: $showClaim) { ClaimView(home: home) }
         .sheet(item: $demoPDF) { file in
             PDFPreviewView(url: file.url, title: "\(home.name) record")
         }
@@ -140,6 +180,14 @@ struct HomeDetailView: View {
         switch Demo.screen {
         case "export":
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) { showExport = true }
+        case "coverage":
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) { showCoverage = true }
+        case "claim":
+            for room in home.rooms where room.name == "Kitchen" || room.name == "Living room" {
+                for item in room.items { item.lossStatus = "lost" }
+            }
+            home.lossCause = "Fire"
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) { showClaim = true }
         case "pdf":
             let report = ReportData(home: home, includePhotos: true)
             if let url = try? PDFExporter.writePDF(report, password: nil) {

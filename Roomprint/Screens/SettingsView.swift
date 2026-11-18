@@ -6,6 +6,7 @@ struct SettingsView: View {
     @Environment(ScanStore.self) private var scans
     @Environment(\.dismiss) private var dismiss
     @AppStorage("lockEnabled") private var lockEnabled = false
+    @AppStorage("rp.remindersOn") private var remindersOn = false
     @State private var showPaywall = false
     @State private var showScanCredits = false
     @State private var lockError: String?
@@ -75,6 +76,19 @@ struct SettingsView: View {
 
                 Section {
                     Toggle(isOn: Binding(
+                        get: { remindersOn },
+                        set: { setReminders($0) }
+                    )) {
+                        Label("Remind me twice a year", systemImage: "bell.badge")
+                    }
+                } header: {
+                    Text("Keep it current")
+                } footer: {
+                    Text("A record goes stale as you buy things. Roomprint can nudge you every six months to add what's new.")
+                }
+
+                Section {
+                    Toggle(isOn: Binding(
                         get: { lockEnabled },
                         set: { setLock($0) }
                     )) {
@@ -138,6 +152,10 @@ struct SettingsView: View {
                 Text(store.message ?? "")
             }
         }
+    }
+
+    private func setReminders(_ on: Bool) {
+        Task { remindersOn = await Reminders.set(on) }
     }
 
     private func setLock(_ on: Bool) {
